@@ -15,6 +15,10 @@ def validateUserAccess(model):
             pk = kwargs.get('pk')
             baseObject = get_object_or_404(model, pk=pk)
 
+            groupPK = kwargs.get('groupPK')
+            if groupPK and get_object_or_404(model, pk=groupPK) != baseObject:
+                return HttpResponseForbidden('URL dispatcher error: Primary key mismatch.')
+
             if hasattr(baseObject, 'owner'):
                 groupObject = baseObject
 
@@ -32,11 +36,16 @@ def validateUserAccess(model):
 
             user = request.user
 
-            if not (groupObject.owner == request.user or groupObject.teachers.filter(id=user.id).exists() or groupObject.students.filter(id=user.id).exists()):
+            # if not (groupObject.owner == request.user or groupObject.teachers.filter(id=user.id).exists() or groupObject.students.filter(id=user.id).exists()):
+            #     return HttpResponseForbidden(f'You do not have permission to access: {groupObject._meta.verbose_name}')
+            
+            userType = groupObject.getUserRelation(request.user)
+            if not userType or not (userType == 'owner' or userType == 'teacher' or userType == 'student'):
                 return HttpResponseForbidden(f'You do not have permission to access: {groupObject._meta.verbose_name}')
             
             request.baseObject = baseObject
             request.groupObject = groupObject
+            request.userRelation = userType
 
             return viewFunc(request, *args, **kwargs)
         return _wrapped_view
@@ -70,11 +79,16 @@ def validateUserEdit(model):
 
             user = request.user
 
-            if not (groupObject.owner == request.user or groupObject.teachers.filter(id=user.id).exists()):
+            # if not (groupObject.owner == request.user or groupObject.teachers.filter(id=user.id).exists()):
+            #     return HttpResponseForbidden(f'You do not have permission to access: {groupObject._meta.verbose_name}')
+
+            userType = groupObject.getUserRelation(request.user)
+            if not userType or not (userType == 'owner' or userType == 'teacher'):
                 return HttpResponseForbidden(f'You do not have permission to access: {groupObject._meta.verbose_name}')
             
             request.baseObject = baseObject
             request.groupObject = groupObject
+            request.userRelation = userType
 
             return viewFunc(request, *args, **kwargs)
         return _wrapped_view

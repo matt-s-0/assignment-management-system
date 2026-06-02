@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET
 from django.db.models import Q
 from groups.models import group
 
+@require_GET
 @login_required
 def mainDashboard(request):
     userGroups = group.objects.filter(

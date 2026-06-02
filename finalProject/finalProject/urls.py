@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from pages.views import mainDashboard
+import groups.views as groupViews
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,5 +32,8 @@ urlpatterns = [
     
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 
-    # path('<int:pk>/', views.assignmentDetailed, name='assignmentDetailedView'),
+    path('group/<int:pk>/', groupViews.studentViewGroup),
+    path('group/<int:pk>/', groupViews.teacherViewGroup),
+
+    path('group/<int:groupPK>/assignment/<int:pk>/', groupViews.viewAssignment),
 ]

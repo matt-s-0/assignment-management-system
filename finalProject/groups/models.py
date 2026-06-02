@@ -27,6 +27,15 @@ class group(models.Model):
                 raise ValidationError('A user is in both teacher and student fields.')
             
         super().clean()
+
+    def getUserRelation(self, user):
+        if self.owner_id == user.id:
+            return 'owner'
+        if self.teachers.filter(id=user.id).exists():
+            return 'teacher'
+        if self.students.filter(id=user.id).exists():
+            return 'student'
+        return None
             
     def __str__(self):
         return self.title
