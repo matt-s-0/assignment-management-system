@@ -91,7 +91,7 @@ def createAssignment(request, pk):
         newForm.save()
         newForm.save_m2m() 
         
-        return redirect('home')
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignment)
