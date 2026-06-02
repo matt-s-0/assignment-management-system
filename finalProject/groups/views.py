@@ -87,8 +87,8 @@ def createAssignment(request, pk):
     if form.is_valid():
         newForm = form.save(commit=False)
         newForm.assignmentGroup = request.baseObject
+
         newForm.save()
-        
         newForm.save_m2m() 
         
         return redirect('home')
@@ -157,7 +157,7 @@ def createSubmission(request, pk, submittedTextContent=''):
         newForm.save()
         newForm.save_m2m() 
         
-        return redirect('home')
+    return redirect('home')
 
 
 @require_POST
@@ -166,7 +166,13 @@ def gradeSubmission(request, pk):
     form = teacherSubmissionForm(request.POST, instance=request.baseObject)
 
     if form.is_valid(): 
-        form.save()
+        newForm = form.save(commit=False)
+
+        newForm.isGraded = True
+
+        newForm.save()
+
+    return redirect('home')
 
 @require_GET
 @validateUserAccess(submission)

@@ -32,8 +32,8 @@ urlpatterns = [
     
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 
-    path('group/<int:pk>/', groupViews.studentViewGroup),
-    path('group/<int:pk>/', groupViews.teacherViewGroup),
+    path('group/<int:pk>/', groupViews.viewGroup),
+    path('group/<int:pk>/', groupViews.viewGroup),
 
     path('group/<int:groupPK>/assignment/<int:pk>/', groupViews.viewAssignment),
 ]
