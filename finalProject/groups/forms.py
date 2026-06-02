@@ -30,4 +30,4 @@ class teacherSubmissionForm(forms.ModelForm):
     class Meta:
         model = submission
         # treated as an 'edit' to an already existing submission (but only editting the grade & teacherFeedback)
-        fields = ['grade, teacherFeedback']
+        fields = ['grade', 'teacherFeedback']

@@ -1,11 +1,15 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST, require_GET
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 from .forms import *
 from .decorators import *
+import base64
 
 #################### Groups ####################
 
 @require_POST
+@login_required
 def createGroup(request):
     form = groupForm(request.POST)
 
@@ -14,19 +18,18 @@ def createGroup(request):
         newForm.owner = request.user
         newForm.save()
         newForm.save_m2m()
-        return redirect('home')
-        
-    # return redirect('')
+
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(group)
 def editGroup(request, pk):
-    form = groupForm(request.POST, instance=request.baseObject)
+    form = groupForm(request.POST, instance=request.groupObject)
 
     if form.is_valid(): 
         form.save()
 
-        # return redirect('')
+        return redirect('home')
 
 @require_POST
 @validateUserEdit(group)
@@ -37,27 +40,12 @@ def deleteGroup(request, pk):
 
 @require_GET
 @validateUserAccess(group)
-def studentViewGroup(request, pk):
-    if not (request.groupObject.students.filter(id=request.user.id).exists()):
-        return HttpResponseForbidden(f"You do not have permission to access: {request.groupObject._meta.verbose_name}")
-    
-    # return render stuff #####################################################################################################################
-
-@require_GET
-@validateUserAccess(group)
-def teacherViewGroup(request, pk):
-    if not (request.groupObject.teachers.filter(id=request.user.id).exists()):
-        return HttpResponseForbidden(f"You do not have permission to access: {request.groupObject._meta.verbose_name}")
-    
-    # return render stuff #####################################################################################################################
-
-@require_GET
-@validateUserAccess(group)
-def ownerViewGroup(request, pk):
-    if request.groupObject.owner != request.user:
-        return HttpResponseForbidden(f"You do not have permission to access: {request.groupObject._meta.verbose_name}")
-    
-    # return render stuff #####################################################################################################################
+def viewGroup(request, pk):
+    context = {
+        'group': request.groupObject,
+        'userRelation': request.userRelation
+    }
+    return render(request, 'group.html', context)
 
 #################### Assignment Groups ####################
 
@@ -69,8 +57,8 @@ def createAssignmentGroup(request, pk):
     if form.is_valid():
         newForm = form.save(commit=False)
         newForm.group = request.groupObject
+
         newForm.save()
-        
         newForm.save_m2m() 
         
         return redirect('home')
@@ -100,11 +88,11 @@ def createAssignment(request, pk):
     if form.is_valid():
         newForm = form.save(commit=False)
         newForm.assignmentGroup = request.baseObject
+
         newForm.save()
-        
         newForm.save_m2m() 
         
-        return redirect('home')
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignment)
@@ -121,11 +109,22 @@ def deleteAssignment(request, pk):
     
     return redirect('home')
 
+@require_GET
+@validateUserAccess(assignment)
+def viewAssignment(request, groupPK, pk):
+    context = {
+        'group': request.groupObject,
+        'assignment': request.baseObject,
+        'userRelation': request.userRelation,
+        'isSubmission': False
+    }
+    return render(request, 'assignment.html', context)
+
 #################### Submissions ####################
 
 @require_POST
 @validateUserAccess(assignment)
-def createSubmission(request, pk):
+def createSubmission(request, pk, submittedTextContent=''):
     # checks if assignment can be submitted
     if request.baseObject.assignment.assignmentType == 'unsubmittable':
         return HttpResponseForbidden(f"You may not submit: {request.baseObject.assignment.title}")
@@ -137,20 +136,12 @@ def createSubmission(request, pk):
     # CDR
     uploadedFile = request.FILES.get('uploadedFile')
 
-    # Initializing to prevent errors in the form saving (incase file does not exist)
-    fileContent = ''
-    fileName = ''
-
     if uploadedFile:
         fileName = uploadedFile.name
-
-        try:
-                fileBytes = uploadedFile.read()
-                fileContent = fileBytes.decode('utf-8') 
-        except UnicodeDecodeError:
-                # some file types will fail, so resort to base64
-                import base64
-                fileContent = base64.b64encode(fileBytes).decode('utf-8')
+        fileContent = base64.b64encode(uploadedFile.read()).decode('utf-8')
+    else:
+        fileName = ''
+        fileContent = ''
     
     form = studentSubmissionForm(request.POST, request.FILES)
 
@@ -159,15 +150,15 @@ def createSubmission(request, pk):
 
         newForm.assignment = request.baseObject
         newForm.student = request.user
+
+        newForm.submittedText = submittedTextContent
         newForm.submittedFileContent = fileContent
         newForm.originalFileName = fileName
-
-        newForm.teacherFeedback = None
 
         newForm.save()
         newForm.save_m2m() 
         
-        return redirect('home')
+    return redirect('home')
 
 
 @require_POST
@@ -176,18 +167,21 @@ def gradeSubmission(request, pk):
     form = teacherSubmissionForm(request.POST, instance=request.baseObject)
 
     if form.is_valid(): 
-        form.save()
+        newForm = form.save(commit=False)
+
+        newForm.isGraded = True
+
+        newForm.save()
+
+    return redirect('home')
 
 @require_GET
 @validateUserAccess(submission)
-def studentViewSubmission(request, pk):
-    if not (request.groupObject.students.filter(id=request.user.id).exists()):
-        return HttpResponseForbidden(f"You do not have permission to access: {request.groupObject._meta.verbose_name}")
-    
-    # return render stuff ####################################################################################################################
-
-@require_GET
-@validateUserEdit(submission)
-def teacherViewSubmission(request, pk):
-    return
-    # return render stuff #####################################################################################################################
+def viewSubmission(request, pk):
+    context = {
+        'group': request.groupObject,
+        'submission': request.baseObject,
+        'userRelation': request.userRelation,
+        'isSubmission': True
+    }
+    return render(request, 'submission.html', context)
