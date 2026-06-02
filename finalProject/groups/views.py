@@ -18,7 +18,8 @@ def createGroup(request):
         newForm.owner = request.user
         newForm.save()
         newForm.save_m2m()
-        return redirect('home')
+
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(group)
