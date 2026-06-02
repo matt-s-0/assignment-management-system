@@ -184,4 +184,4 @@ def viewSubmission(request, pk):
         'userRelation': request.userRelation,
         'isSubmission': True
     }
-    return render(request, 'assignment.html', context)
+    return render(request, 'submission.html', context)
