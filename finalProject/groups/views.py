@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from .forms import *
 from .decorators import *
 import base64
@@ -133,10 +133,15 @@ def createSubmission(request, pk, submittedTextContent=''):
     if request.baseObject.group == 'submittable' and request.baseObject.assignment.submissions.filter(student=request.user).exists():
         return HttpResponseForbidden(f"You have already submitted: {request.baseObject.assignment.title}")
     
+    maxFileSize = 1048576  # 1 MB in bytes, 1024 * 1024
+
     # CDR
     uploadedFile = request.FILES.get('uploadedFile')
 
     if uploadedFile:
+        if uploadedFile.size > maxFileSize:
+            return JsonResponse({'error': 'File size exceeds the 1 MB limit.'}, status=400)
+        
         fileName = uploadedFile.name
         fileContent = base64.b64encode(uploadedFile.read()).decode('utf-8')
     else:

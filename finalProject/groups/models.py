@@ -102,7 +102,7 @@ class submission(models.Model):
     )
     
     # CDR
-    submittedFileContent = models.TextField(max_length=100000, blank=True, null=True)
+    submittedFileContent = models.TextField(max_length=1000000, blank=True, null=True)
     originalFileName = models.CharField(max_length=255, blank=True, null=True)
     submittedText = models.TextField(max_length=100000, blank=True, null=True)
     
