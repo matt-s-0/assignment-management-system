@@ -93,3 +93,17 @@ def validateUserEdit(model):
             return viewFunc(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+    
+def cleanKeys(viewFunc):
+    def _wrapped_view(request, *args, **kwargs):
+        if request.method == 'POST':
+            postData = request.POST.copy()
+        
+            for key in list(postData.keys()):
+                if postData[key] == "":
+                    postData.pop(key)
+        
+        request.POST = postData
+
+        return viewFunc(request, *args, **kwargs)
+    return _wrapped_view

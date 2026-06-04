@@ -1,1 +1,146 @@
-<!-- using this to test forms & views for 'groups' model -->
+<!-- 
+ Only used for testing 
+ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Panel</title>
+</head>
+<body>
+
+    <h1>Test Panel</h1>
+    <hr>
+
+    <h2>1. Groups Management</h2>
+
+    <h3>Create Group</h3>
+    <form action="http://127.0.0.1:8000/group/create/" method="POST">
+        {% csrf_token %}
+        
+        <label>Title: <input type="text" name="title" required></label><br><br>
+        <label>Description: <textarea name="description"></textarea></label><br><br>
+        <label>Open Grade Book: <input type="checkbox" name="openGradeBook" value="true"></label><br><br>
+        <label>Teachers (IDs, comma-separated for test): <input type="text" name="teachers"></label><br><br>
+        <label>Students (IDs, comma-separated for test): <input type="text" name="students"></label><br><br>
+        <button type="submit">Submit (POST /group/create/)</button>
+    </form>
+
+    <h3>Edit Group</h3>
+    <p>Select Group ID to edit:</p>
+    <select id="editGroupSelect" onchange="document.getElementById('editGroupForm').action = 'http://127.0.0.1:8000/group/' + this.value + '/edit/ ';">
+        <option value="1">Group ID 1</option>
+        <option value="2">Group ID 2</option>
+        <option value="3">Group ID 3</option>
+    </select>
+    <br><br>
+    <form id="editGroupForm" action="http://127.0.0.1:8000/group/1/edit/" method="POST">
+        {% csrf_token %}
+        <label>Title: <input type="text" name="title" required></label><br><br>
+        <label>Description: <textarea name="description"></textarea></label><br><br>
+        <label>Open Grade Book: <input type="checkbox" name="openGradeBook" value="true"></label><br><br>
+        <label>Teachers: <input type="text" name="teachers"></label><br><br>
+        <label>Students: <input type="text" name="students"></label><br><br>
+        <button type="submit">Update Group</button>
+    </form>
+
+    <h3>Delete Group</h3>
+    <form id="deleteGroupForm" action="http://127.0.0.1:8000/group/1/delete/" method="POST">
+        {% csrf_token %}
+        <label>Select Group ID to Delete: </label>
+        <select onchange="document.getElementById('deleteGroupForm').action = 'http://127.0.0.1:8000/group/' + this.value + '/delete/';">
+            <option value="1">Group ID 1</option>
+            <option value="2">Group ID 2</option>
+            <option value="3">Group ID 3</option>
+        </select>
+        <button type="submit" onclick="return confirm('Are you sure?');">Delete Group</button>
+    </form>
+
+    <hr>
+
+    <h2>2. Assignment Groups Management</h2>
+
+    <h3>Create Assignment Group</h3>
+    <form id="createAssignGroupForm" action="http://127.0.0.1:8000/group/1/assignment-group/create/" method="POST">
+        {% csrf_token %}
+        <label>Belongs to Group ID: </label>
+        <select onchange="document.getElementById('createAssignGroupForm').action = 'http://127.0.0.1:8000/group/' + this.value + '/assignment-group/create/';">
+            <option value="1">Group ID 1</option>
+            <option value="2">Group ID 2</option>
+        </select>
+        <br><br>
+        <label>Title: <input type="text" name="title" required></label><br><br>
+        <label>Subtitle: <input type="text" name="subtitle"></label><br><br>
+        <button type="submit">Create Assignment Group</button>
+    </form>
+
+    <h3>Delete Assignment Group</h3>
+    <form id="deleteAssignGroupForm" action="http://127.0.0.1:8000/assignment-group/1/delete/" method="POST">
+        {% csrf_token %}
+        <label>Select Assignment Group ID to Delete: </label>
+        <select onchange="document.getElementById('deleteAssignGroupForm').action = 'http://127.0.0.1:8000/assignment-group/' + this.value + '/delete/';">
+            <option value="1">Assignment Group ID 1</option>
+            <option value="2">Assignment Group ID 2</option>
+        </select>
+        <button type="submit">Delete Assignment Group</button>
+    </form>
+
+    <hr>
+
+    <h2>3. Assignments</h2>
+
+    <h3>Create Assignment</h3>
+    <form id="createAssignmentForm" action="http://127.0.0.1:8000/assignment-group/1/assignment/create/" method="POST">
+        {% csrf_token %}
+        <label>Belongs to Assignment Group ID: </label>
+        <select onchange="document.getElementById('createAssignmentForm').action = 'http://127.0.0.1:8000/assignment-group/' + this.value + '/assignment/create/';">
+            <option value="1">Assignment Group ID 1</option>
+            <option value="2">Assignment Group ID 2</option>
+        </select>
+        <br><br>
+        <label>Title: <input type="text" name="title" required></label><br><br>
+        <label>Description: <textarea name="description"></textarea></label><br><br>
+        <label>Is Hidden: <input type="checkbox" name="isHidden" value="true"></label><br><br>
+        <label>Assignment Type: </label>
+        <select name="assignmentType">
+            <option value="submittable">Submittable</option>
+            <option value="unsubmittable">Unsubmittable</option>
+        </select><br><br>
+        <button type="submit">Create Assignment</button>
+    </form>
+
+    <hr>
+
+    <h2>4. Submissions & Grading</h2>
+
+    <h3>Student: Create Submission</h3>
+    <form id="submitForm" action="http://127.0.0.1:8000/assignment/1/submit/" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label>Submitting to Assignment ID: </label>
+        <select onchange="document.getElementById('submitForm').action = 'http://127.0.0.1:8000/assignment/' + this.value + '/submit/';">
+            <option value="1">Assignment ID 1</option>
+            <option value="2">Assignment ID 2</option>
+        </select>
+        <br><br>
+        <label>Submitted Text Content: <textarea name="submittedText"></textarea></label><br><br>
+        <label>Upload File (Max 1MB): <input type="file" name="uploadedFile"></label><br><br>
+        <button type="submit">Submit Assignment</button>
+    </form>
+
+    <h3>Teacher: Grade Submission</h3>
+    <form id="gradeForm" action="http://127.0.0.1:8000/submission/1/grade/" method="POST">
+        {% csrf_token %}
+        <label>Grading Submission ID: </label>
+        <select onchange="document.getElementById('gradeForm').action = 'http://127.0.0.1:8000/submission/' + this.value + '/grade/';">
+            <option value="1">Submission ID 1</option>
+            <option value="2">Submission ID 2</option>
+        </select>
+        <br><br>
+        <label>Grade (Integer/Float score): <input type="number" step="0.1" name="grade" required></label><br><br>
+        <label>Teacher Feedback: <textarea name="teacherFeedback"></textarea></label><br><br>
+        <button type="submit">Submit Grade</button>
+    </form>
+
+</body>
+</html>

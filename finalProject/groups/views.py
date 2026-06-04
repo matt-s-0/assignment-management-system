@@ -10,6 +10,7 @@ import base64
 
 @require_POST
 @login_required
+@cleanKeys
 def createGroup(request):
     form = groupForm(request.POST)
 
@@ -17,19 +18,20 @@ def createGroup(request):
         newForm = form.save(commit=False)
         newForm.owner = request.user
         newForm.save()
-        newForm.save_m2m()
+        form.save_m2m()
 
     return redirect('home')
 
 @require_POST
 @validateUserEdit(group)
+@cleanKeys
 def editGroup(request, pk):
     form = groupForm(request.POST, instance=request.groupObject)
 
     if form.is_valid(): 
         form.save()
 
-        return redirect('home')
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(group)
@@ -51,6 +53,7 @@ def viewGroup(request, pk):
 
 @require_POST
 @validateUserEdit(group)
+@cleanKeys
 def createAssignmentGroup(request, pk):
     form = assignmentGroupForm(request.POST)
 
@@ -59,17 +62,20 @@ def createAssignmentGroup(request, pk):
         newForm.group = request.groupObject
 
         newForm.save()
-        newForm.save_m2m() 
+        form.save_m2m() 
         
-        return redirect('home')
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignmentGroup)
+@cleanKeys
 def editAssignmentGroup(request, pk):
     form = assignmentGroupForm(request.POST, instance=request.baseObject)
 
     if form.is_valid(): 
         form.save()
+
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignmentGroup)
@@ -82,6 +88,7 @@ def deleteAssignmentGroup(request, pk):
 
 @require_POST
 @validateUserEdit(assignmentGroup)
+@cleanKeys
 def createAssignment(request, pk):
     form = assignmentForm(request.POST)
 
@@ -90,17 +97,20 @@ def createAssignment(request, pk):
         newForm.assignmentGroup = request.baseObject
 
         newForm.save()
-        newForm.save_m2m() 
+        form.save_m2m() 
         
     return redirect('home')
 
 @require_POST
 @validateUserEdit(assignment)
+@cleanKeys
 def editAssignment(request, pk):
     form = assignmentForm(request.POST, instance=request.baseObject)
 
     if form.is_valid(): 
         form.save()
+
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignment)
@@ -124,14 +134,15 @@ def viewAssignment(request, groupPK, pk):
 
 @require_POST
 @validateUserAccess(assignment)
+@cleanKeys
 def createSubmission(request, pk, submittedTextContent=''):
     # checks if assignment can be submitted
-    if request.baseObject.assignment.assignmentType == 'unsubmittable':
-        return HttpResponseForbidden(f"You may not submit: {request.baseObject.assignment.title}")
+    if request.baseObject.assignmentType == 'unsubmittable':
+        return HttpResponseForbidden(f"You may not submit: {request.baseObject.title}")
     
     # checks if the student already made a submission for an assignment that can only be submitted once
-    if request.baseObject.group == 'submittable' and request.baseObject.assignment.submissions.filter(student=request.user).exists():
-        return HttpResponseForbidden(f"You have already submitted: {request.baseObject.assignment.title}")
+    if request.baseObject.assignmentType == 'submittable' and request.baseObject.submissions.filter(student=request.user).exists():
+        return HttpResponseForbidden(f"You have already submitted: {request.baseObject.title}")
     
     maxFileSize = 1048576  # 1 MB in bytes, 1024 * 1024
 
@@ -161,13 +172,14 @@ def createSubmission(request, pk, submittedTextContent=''):
         newForm.originalFileName = fileName
 
         newForm.save()
-        newForm.save_m2m() 
+        form.save_m2m() 
         
     return redirect('home')
 
 
 @require_POST
 @validateUserEdit(submission)
+@cleanKeys
 def gradeSubmission(request, pk):
     form = teacherSubmissionForm(request.POST, instance=request.baseObject)
 
@@ -182,6 +194,7 @@ def gradeSubmission(request, pk):
 
 @require_GET
 @validateUserAccess(submission)
+@cleanKeys
 def viewSubmission(request, pk):
     context = {
         'group': request.groupObject,

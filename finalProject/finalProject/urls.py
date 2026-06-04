@@ -17,8 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from pages.views import mainDashboard
-import groups.views as groupViews
+from pages.views import mainDashboard, testDashboard
+import groups.views as views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,8 +32,28 @@ urlpatterns = [
     
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
 
-    path('group/<int:pk>/', groupViews.viewGroup),
+    #################### Test URLs ################
+    path('test/', testDashboard, name='testPanel'),
 
-    path('group/<int:groupPK>/assignment/<int:pk>/', groupViews.viewAssignment),
-    path('group/<int:groupPK>/assignment/<int:pk>/submit/', groupViews.viewSubmission),
+    #################### Groups ####################
+    path('group/create/', views.createGroup, name='createGroup'),
+    path('group/<int:pk>/', views.viewGroup, name='viewGroup'),
+    path('group/<int:pk>/edit/', views.editGroup, name='editGroup'),
+    path('group/<int:pk>/delete/', views.deleteGroup, name='deleteGroup'),
+
+    #################### Assignment Groups ####################
+    path('group/<int:pk>/assignment-group/create/', views.createAssignmentGroup, name='createAssignmentGroup'),
+    path('assignment-group/<int:pk>/edit/', views.editAssignmentGroup, name='editAssignmentGroup'),
+    path('assignment-group/<int:pk>/delete/', views.deleteAssignmentGroup, name='delete_assignmentGroup'),
+
+    #################### Assignments ####################
+    path('assignment-group/<int:pk>/assignment/create/', views.createAssignment, name='createAssignment'),
+    path('group/<int:groupPK>/assignment/<int:pk>/', views.viewAssignment, name='viewAssignment'),
+    path('assignment/<int:pk>/edit/', views.editAssignment, name='editAssignment'),
+    path('assignment/<int:pk>/delete/', views.deleteAssignment, name='deleteAssignment'),
+
+    #################### Submissions ####################
+    path('assignment/<int:pk>/submit/', views.createSubmission, name='createSubmission'),
+    path('submission/<int:pk>/', views.viewSubmission, name='viewSubmission'),
+    path('submission/<int:pk>/grade/', views.gradeSubmission, name='gradeSubmission'),
 ]

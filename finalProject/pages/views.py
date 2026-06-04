@@ -17,3 +17,8 @@ def mainDashboard(request):
         'groups': userGroups
     }
     return render(request, 'home.html', context)
+
+@require_GET
+@login_required
+def testDashboard(request):
+    return render(request, 'testForms.html')

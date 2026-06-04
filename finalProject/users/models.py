@@ -11,6 +11,13 @@ class User(AbstractUser):
 
     def getDisplayName(self):
         return self.displayName
+    
+    def getUserFromEmail(self, email):
+        try:
+            normalizedEmail = self.normalizeEmail(email)
+            return self.get(email=normalizedEmail)
+        except self.model.DoesNotExist:
+            return None
 
     def save(self, *args, **kwargs):
         if not self.displayName:

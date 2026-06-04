@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 class group(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(max_length=1000, null=True, blank=True)
-    openGradeBook = models.BooleanField(default=False)
+    openGradeBook = models.BooleanField(default=False, blank=True)
     
     owner = models.ForeignKey(
         'users.User', 
@@ -12,8 +12,8 @@ class group(models.Model):
         related_name='ownedGroups' 
     )
 
-    teachers = models.ManyToManyField('users.User', related_name='teachers', blank=True)
-    students = models.ManyToManyField('users.User', related_name='students', blank=True)
+    teachers = models.ManyToManyField('users.User', related_name='teachers', blank=True, null=True)
+    students = models.ManyToManyField('users.User', related_name='students', blank=True, null=True)
     
     def clean(self):
         if self.pk:
@@ -58,7 +58,7 @@ class assignment(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
 
-    isHidden = models.BooleanField(default=True)
+    isHidden = models.BooleanField(default=True, blank=True)
 
     gradeMax = models.DecimalField(
         max_digits=6, 
@@ -102,12 +102,12 @@ class submission(models.Model):
     )
     
     # CDR
-    submittedFileContent = models.TextField(max_length=1000000, blank=True, null=True)
+    submittedFileContent = models.TextField(max_length=1300000, blank=True, null=True)
     originalFileName = models.CharField(max_length=255, blank=True, null=True)
     submittedText = models.TextField(max_length=100000, blank=True, null=True)
     
     submittedAt = models.DateTimeField(auto_now_add=True)
-    isGraded = models.BooleanField(default=False)
+    isGraded = models.BooleanField(default=False, blank=True)
 
     grade = models.DecimalField(
         max_digits=6, 
