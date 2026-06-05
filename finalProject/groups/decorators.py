@@ -2,7 +2,7 @@ from functools import wraps
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponseForbidden
 
-# login_required is built into every decorator (in this file)
+# login_required is built into validateUserAccess & validateUserEdit
 
 def validateUserAccess(model):
     def decorator(viewFunc):
@@ -29,11 +29,6 @@ def validateUserAccess(model):
 
             else:
                 return HttpResponseForbidden('Resource configuration error: Group relationship not found.')
-
-            user = request.user
-
-            # if not (groupObject.owner == request.user or groupObject.teachers.filter(id=user.id).exists() or groupObject.students.filter(id=user.id).exists()):
-            #     return HttpResponseForbidden(f'You do not have permission to access: {groupObject._meta.verbose_name}')
             
             userType = groupObject.getUserRelation(request.user)
             if not userType or not (userType == 'owner' or userType == 'teacher' or userType == 'student'):
@@ -73,10 +68,6 @@ def validateUserEdit(model):
             else:
                 return HttpResponseForbidden('Resource configuration error: Group relationship not found.')
 
-            user = request.user
-
-            # if not (groupObject.owner == request.user or groupObject.teachers.filter(id=user.id).exists()):
-            #     return HttpResponseForbidden(f'You do not have permission to access: {groupObject._meta.verbose_name}')
 
             userType = groupObject.getUserRelation(request.user)
             if not userType or not (userType == 'owner' or userType == 'teacher'):
