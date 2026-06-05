@@ -44,11 +44,11 @@ urlpatterns = [
     #################### Assignment Groups ####################
     path('group/<int:pk>/assignment-group/create/', views.createAssignmentGroup, name='createAssignmentGroup'),
     path('assignment-group/<int:pk>/edit/', views.editAssignmentGroup, name='editAssignmentGroup'),
-    path('assignment-group/<int:pk>/delete/', views.deleteAssignmentGroup, name='delete_assignmentGroup'),
+    path('assignment-group/<int:pk>/delete/', views.deleteAssignmentGroup, name='deleteAssignmentGroup'),
 
     #################### Assignments ####################
     path('assignment-group/<int:pk>/assignment/create/', views.createAssignment, name='createAssignment'),
-    path('group/<int:groupPK>/assignment/<int:pk>/', views.viewAssignment, name='viewAssignment'),
+    path('assignment/<int:pk>/', views.viewAssignment, name='viewAssignment'),
     path('assignment/<int:pk>/edit/', views.editAssignment, name='editAssignment'),
     path('assignment/<int:pk>/delete/', views.deleteAssignment, name='deleteAssignment'),
 

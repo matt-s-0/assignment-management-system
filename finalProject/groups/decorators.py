@@ -15,10 +15,6 @@ def validateUserAccess(model):
             pk = kwargs.get('pk')
             baseObject = get_object_or_404(model, pk=pk)
 
-            groupPK = kwargs.get('groupPK')
-            if groupPK and get_object_or_404(model, pk=groupPK) != baseObject:
-                return HttpResponseForbidden('URL dispatcher error: Primary key mismatch.')
-
             if hasattr(baseObject, 'owner'):
                 groupObject = baseObject
 

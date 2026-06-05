@@ -12,8 +12,8 @@ class group(models.Model):
         related_name='ownedGroups' 
     )
 
-    teachers = models.ManyToManyField('users.User', related_name='teachers', blank=True, null=True)
-    students = models.ManyToManyField('users.User', related_name='students', blank=True, null=True)
+    teachers = models.ManyToManyField('users.User', related_name='teachers', blank=True)
+    students = models.ManyToManyField('users.User', related_name='students', blank=True)
     
     def clean(self):
         if self.pk:

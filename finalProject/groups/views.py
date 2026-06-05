@@ -13,12 +13,18 @@ import base64
 @cleanKeys
 def createGroup(request):
     form = groupForm(request.POST)
+    print('createGroup called')
 
     if form.is_valid():
         newForm = form.save(commit=False)
         newForm.owner = request.user
+
         newForm.save()
         form.save_m2m()
+    else:
+        ######################################## DEBUG ########################################
+        print("Form Validation Failed!")
+        print(form.errors.as_json())
 
     return redirect('home')
 
@@ -121,7 +127,7 @@ def deleteAssignment(request, pk):
 
 @require_GET
 @validateUserAccess(assignment)
-def viewAssignment(request, groupPK, pk):
+def viewAssignment(request, pk):
     context = {
         'group': request.groupObject,
         'assignment': request.baseObject,
