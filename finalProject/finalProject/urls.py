@@ -54,6 +54,5 @@ urlpatterns = [
 
     #################### Submissions ####################
     path('assignment/<int:pk>/submit/', views.createSubmission, name='createSubmission'),
-    path('submission/<int:pk>/', views.viewSubmission, name='viewSubmission'),
     path('submission/<int:pk>/grade/', views.gradeSubmission, name='gradeSubmission'),
 ]

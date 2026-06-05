@@ -53,7 +53,7 @@ def viewGroup(request, pk):
         'group': request.groupObject,
         'userRelation': request.userRelation
     }
-    return render(request, 'group.html', context)
+    return render(request, 'groups/group.html', context)
 
 #################### Assignment Groups ####################
 
@@ -128,13 +128,20 @@ def deleteAssignment(request, pk):
 @require_GET
 @validateUserAccess(assignment)
 def viewAssignment(request, pk):
+
+    if request.baseObject.isHidden == True:
+        return redirect('home')
+
     context = {
         'group': request.groupObject,
         'assignment': request.baseObject,
-        'userRelation': request.userRelation,
-        'isSubmission': False
+        'userRelation': request.userRelation
     }
-    return render(request, 'assignment.html', context)
+
+    if request.baseObject.assignmentType != 'unsubmittable' and request.baseObject.submissions.filter(student=request.user).exists():
+        return render(request, 'groups/submission.html', context)
+    else:
+        return render(request, 'groups/assignment.html', context)
 
 #################### Submissions ####################
 
@@ -197,15 +204,3 @@ def gradeSubmission(request, pk):
         newForm.save()
 
     return redirect('home')
-
-@require_GET
-@validateUserAccess(submission)
-@cleanKeys
-def viewSubmission(request, pk):
-    context = {
-        'group': request.groupObject,
-        'submission': request.baseObject,
-        'userRelation': request.userRelation,
-        'isSubmission': True
-    }
-    return render(request, 'submission.html', context)
