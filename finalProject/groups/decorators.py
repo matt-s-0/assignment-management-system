@@ -1,6 +1,6 @@
 from functools import wraps
 from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 
 # login_required is built into validateUserAccess & validateUserEdit
 
@@ -8,7 +8,7 @@ def validateUserAccess(model):
     def decorator(viewFunc):
         @wraps(viewFunc)
 
-        def _wrapped_view(request, *args, **kwargs):
+        def _wrapped_view(request, *args, **kwargs) -> function | HttpResponse:
             if not request.user.is_authenticated:
                 return redirect('login')
 
@@ -46,7 +46,7 @@ def validateUserEdit(model):
     def decorator(viewFunc):
         @wraps(viewFunc)
 
-        def _wrapped_view(request, *args, **kwargs):
+        def _wrapped_view(request, *args, **kwargs) -> function | HttpResponse:
             if not request.user.is_authenticated:
                 return redirect('login')
             
@@ -82,7 +82,7 @@ def validateUserEdit(model):
     return decorator
     
 def cleanKeys(viewFunc):
-    def _wrapped_view(request, *args, **kwargs):
+    def _wrapped_view(request, *args, **kwargs) -> function:
         if request.method == 'POST':
             postData = request.POST.copy()
         

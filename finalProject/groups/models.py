@@ -15,7 +15,7 @@ class group(models.Model):
     teachers = models.ManyToManyField('users.User', related_name='teachers', blank=True)
     students = models.ManyToManyField('users.User', related_name='students', blank=True)
     
-    def clean(self):
+    def clean(self) -> None:
         if self.pk:
             if self.teachers.filter(pk=self.owner.pk).exists():
                 raise ValidationError({'teachers': 'Group owner is in the teacher field.'})
@@ -28,8 +28,8 @@ class group(models.Model):
             
         super().clean()
 
-    def getUserRelation(self, user):
-        if self.owner_id == user.id:
+    def getUserRelation(self, user) -> str | None:
+        if self.owner.id == user.id:
             return 'owner'
         if self.teachers.filter(id=user.id).exists():
             return 'teacher'
@@ -37,7 +37,7 @@ class group(models.Model):
             return 'student'
         return None
             
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
 class assignmentGroup(models.Model):
@@ -50,7 +50,7 @@ class assignmentGroup(models.Model):
         related_name='assignmentGroups'
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.group.title} - {self.title}'
 
 
@@ -85,7 +85,7 @@ class assignment(models.Model):
         related_name='assignments'
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
     
 class submission(models.Model):
@@ -119,5 +119,5 @@ class submission(models.Model):
 
     teacherFeedback = models.TextField(max_length=10000, blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.student.username} - {self.assignment.title}'
