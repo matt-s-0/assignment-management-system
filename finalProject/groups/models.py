@@ -60,9 +60,7 @@ class assignment(models.Model):
 
     isHidden = models.BooleanField(default=True, blank=True)
 
-    gradeMax = models.DecimalField(
-        max_digits=6, 
-        decimal_places=3, 
+    gradeMax = models.FloatField(
         null=True, 
         blank=True
     )
@@ -84,6 +82,12 @@ class assignment(models.Model):
         on_delete=models.CASCADE, 
         related_name='assignments'
     )
+
+    def save(self, *args, **kwargs) -> None:
+        if self.gradeMax is not None:
+            self.gradeMax = round(self.gradeMax, 3)
+            
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return self.title
@@ -109,9 +113,7 @@ class submission(models.Model):
     submittedAt = models.DateTimeField(auto_now_add=True)
     isGraded = models.BooleanField(default=False, blank=True)
 
-    grade = models.DecimalField(
-        max_digits=6, 
-        decimal_places=3, 
+    grade = models.FloatField(
         null=True, 
         blank=True,
         default=None

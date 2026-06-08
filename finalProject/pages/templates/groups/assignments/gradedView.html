@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ assignment.title }} - latestSubmission View</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 2.5rem; background-color: #f9f9f9; color: #333; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; background: #2c3e50; padding: 1.2rem 1.5rem; margin: -2.5rem -2.5rem 2.5rem -2.5rem; color: white; }
+        .header-bar h1 { margin: 0; font-size: 1.5em; }
+        
+        .logout-btn { background-color: #e74c3c; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.4rem; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: background 0.2s; }
+        .logout-btn:hover { background-color: #c0392b; }
+
+        .dashboard-container { max-width: 800px; margin: 0 auto; }
+        
+        /* Navigation Breadcrumbs */
+        .breadcrumbs { margin-bottom: 1.5rem; font-size: 0.95rem; color: #7f8c8d; }
+        .breadcrumbs a { color: #3498db; text-decoration: none; transition: color 0.2s; }
+        .breadcrumbs a:hover { text-decoration: underline; color: #2980b9; }
+
+        /* Workspace Card Container */
+        .group-card { 
+            background: white; 
+            padding: 30px; 
+            margin-bottom: 25px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            border: 1px solid #eaeded; 
+        }
+
+        h2 { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #eaeded; padding-bottom: 0.5rem; }
+        h3 { color: #34495e; margin-top: 1.5rem; font-size: 1.2em; margin-bottom: 10px; }
+
+        /* --- Evaluation Banner Layouts --- */
+        .evaluation-banner {
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .banner-graded {
+            background-color: #ebfbee;
+            border: 1px solid #2ecc71;
+        }
+        .banner-pending {
+            background-color: #f7f9fa;
+            border: 1px solid #b2bec3;
+        }
+
+        .grade-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+        }
+        .grade-score { color: #27ae60; }
+        
+        .feedback-box {
+            background: white;
+            border-left: 4px solid #2ecc71;
+            padding: 15px;
+            margin-top: 12px;
+            border-radius: 0 4px 4px 0;
+            color: #2c3e50;
+            line-height: 1.5;
+            white-space: pre-wrap; /* Preserves teacher line breaks */
+        }
+
+        /* --- Content View Box Styles --- */
+        .content-box {
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            min-height: 100px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: #2d3748;
+        }
+
+        .file-download-box {
+            display: inline-flex;
+            align-items: center;
+            background: #edf2f7;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #2b6cb0;
+            font-weight: bold;
+            transition: background 0.2s;
+            margin-top: 5px;
+        }
+        .file-download-box:hover {
+            background: #e2e8f0;
+            color: #2c5282;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <h1>Student Workspace</h1>
+        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Log Out</button>
+        </form>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="breadcrumbs">
+            <a href="{% url 'home' %}">Dashboard</a> &rarr; 
+            <a href="/group/{{ group.id }}/">{{ group.title }}</a> &rarr; 
+            <span>{{ assignment.title }}</span>
+        </div>
+
+        <div class="group-card">
+            <h2>{{ assignment.title }}</h2>
+            
+            {% if latestSubmission.isGraded %}
+                <div class="evaluation-banner banner-graded">
+                    <span class="grade-score">{{ latestSubmission.grade }}</span>
+                    <div class="feedback-box">{{ latestSubmission.teacherFeedback }}</div>
+                </div>
+            {% else %}
+                <div class="evaluation-banner banner-pending">
+                    <h3>Submission Pending Review</h3>
+                    <p>Grade Max: {{ assignment.gradeMax|default:"Not set" }}</p>
+                </div>
+            {% endif %}
+
+            <hr>
+
+            <hr style="border: 0; border-top: 1px solid #eaeded; margin: 2rem 0;">
+            
+            <h3 style="color: #2c3e50;">Your Submission:</h3>
+            <p style="font-size:0.85rem; color:#95a5a6; margin-top: -5px; margin-bottom: 20px;">
+                Timestamp: {{ latestSubmission.submittedAt|date:"M d, Y @ h:i A" }}
+            </p>
+
+            <div class="form-group">
+                <label style="font-weight: bold; display: block; margin-bottom: 8px;">Submitted Text Response:</label>
+                {% if latestSubmission.submittedText %}
+                    <div class="content-box">{{ latestSubmission.submittedText }}</div>
+                {% else %}
+                    <p style="font-style: italic; color: #a0aec0; margin: 0;">No text response was submitted.</p>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label style="font-weight: bold; display: block; margin-bottom: 8px;">Submitted File Attachment:</label>
+                {% if latestSubmission.submittedFileContent %}
+                    <a href="data:application/octet-stream;base64,{{ latestSubmission.submittedFileContent }}" 
+                       download="{{ latestSubmission.originalFileName|default:'latestSubmission_file' }}" 
+                       class="file-download-box">
+                        📁 Download Original: {{ latestSubmission.originalFileName|default:"Attachment File" }}
+                    </a>
+                {% else %}
+                    <p style="font-style: italic; color: #a0aec0; margin: 0;">No file attachment was uploaded.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

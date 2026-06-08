@@ -5,6 +5,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from .forms import *
 from .decorators import *
 import base64
+from collections import defaultdict
 
 #################### Groups ####################
 
@@ -13,7 +14,6 @@ import base64
 @cleanKeys
 def createGroup(request):
     form = groupForm(request.POST)
-    print('createGroup called')
 
     if form.is_valid():
         newForm = form.save(commit=False)
@@ -49,11 +49,16 @@ def deleteGroup(request, pk):
 @require_GET
 @validateUserAccess(group)
 def viewGroup(request, pk):
+
     context = {
-        'group': request.groupObject,
-        'userRelation': request.userRelation
+        'group': request.groupObject
     }
-    return render(request, 'groups/group.html', context)
+
+    if request.userRelation == 'owner':
+        return render(request, 'groups/ownerGroup.html', context)
+    elif request.userRelation == 'teacher':
+        return render(request, 'groups/teacherGroup.html', context)
+    return render(request, 'groups/studentGroup.html', context)
 
 #################### Assignment Groups ####################
 
@@ -129,26 +134,83 @@ def deleteAssignment(request, pk):
 @validateUserAccess(assignment)
 def viewAssignment(request, pk):
 
-    if request.baseObject.isHidden == True:
+    if request.baseObject.isHidden == True and request.userRelation == 'student':
         return redirect('home')
+    
+    latestSubmission = None
+
+    if request.userRelation == 'student':
+
+        latestSubmission = request.baseObject.submissions.filter(
+        student=request.user
+        ).only('submittedText', 'submittedFileContent').order_by('-submittedAt').first()
+
+    submissionExists = latestSubmission is not None
+    
+    aType = request.baseObject.assignmentType
+
+    if aType == 'unsubmittable':
+        assignmentType = 'Not submittable'
+    elif aType == 'resubmittable':
+        assignmentType = 'Can be resubmitted'
+    else:
+        assignmentType = 'Can be submitted once'
 
     context = {
         'group': request.groupObject,
         'assignment': request.baseObject,
-        'userRelation': request.userRelation
+        'type': assignmentType
     }
 
-    if request.baseObject.assignmentType != 'unsubmittable' and request.baseObject.submissions.filter(student=request.user).exists():
-        return render(request, 'groups/submission.html', context)
+    if submissionExists:
+        context['latestSubmission'] = latestSubmission
+
+    if aType != 'unsubmittable' and submissionExists:
+        
+        if aType == 'resubmittable' and not latestSubmission.isGraded:
+            return render(request, 'groups/assignments/studentResubmissionView.html', context)
+        else:
+            return render(request, 'groups/assignments/gradedView.html', context)
     else:
-        return render(request, 'groups/assignment.html', context)
+        userType = request.groupObject.getUserRelation(request.user)
+        if not userType or not (userType == 'owner' or userType == 'teacher'):
+            return render(request, 'groups/assignments/studentAssignmentView.html', context)
+        
+        else:
+            students = request.groupObject.students.all()
+            studentData = []
+
+            submissions = defaultdict(list)
+
+            for s in request.baseObject.submissions.all().order_by('-submittedAt'):
+                submissions[s.student_id].append(s)
+
+            for student in students:
+                studentSubmissions = submissions.get(student.id, [])
+
+                studentData.append({
+                    'student': student,
+                    'submissions': studentSubmissions,
+                    'latestSubmission': (
+                        studentSubmissions[0] if studentSubmissions else None
+                    )
+                })
+
+            context = {
+                'group': request.groupObject,
+                'assignment': request.baseObject,
+                'type': assignmentType,
+                'studentData': studentData
+            }
+
+            return render(request, 'groups/assignments/gradingDashboard.html', context)
 
 #################### Submissions ####################
 
 @require_POST
 @validateUserAccess(assignment)
 @cleanKeys
-def createSubmission(request, pk, submittedTextContent=''):
+def createSubmission(request, pk):
     # checks if assignment can be submitted
     if request.baseObject.assignmentType == 'unsubmittable':
         return HttpResponseForbidden(f"You may not submit: {request.baseObject.title}")
@@ -180,7 +242,6 @@ def createSubmission(request, pk, submittedTextContent=''):
         newForm.assignment = request.baseObject
         newForm.student = request.user
 
-        newForm.submittedText = submittedTextContent
         newForm.submittedFileContent = fileContent
         newForm.originalFileName = fileName
 
@@ -194,13 +255,17 @@ def createSubmission(request, pk, submittedTextContent=''):
 @validateUserEdit(submission)
 @cleanKeys
 def gradeSubmission(request, pk):
-    form = teacherSubmissionForm(request.POST, instance=request.baseObject)
 
-    if form.is_valid(): 
-        newForm = form.save(commit=False)
+    object = request.baseObject
 
-        newForm.isGraded = True
+    object.grade = request.POST.get('grade')
+    object.teacherFeedback = request.POST.get('teacherFeedback')
+    object.isGraded = True
 
-        newForm.save()
+    object.save(update_fields=[
+        'grade',
+        'teacherFeedback',
+        'isGraded'
+    ])
 
     return redirect('home')

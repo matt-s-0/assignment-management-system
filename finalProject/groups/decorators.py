@@ -8,7 +8,7 @@ def validateUserAccess(model):
     def decorator(viewFunc):
         @wraps(viewFunc)
 
-        def _wrapped_view(request, *args, **kwargs) -> function | HttpResponse:
+        def _wrapped_view(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return redirect('login')
 
@@ -46,7 +46,7 @@ def validateUserEdit(model):
     def decorator(viewFunc):
         @wraps(viewFunc)
 
-        def _wrapped_view(request, *args, **kwargs) -> function | HttpResponse:
+        def _wrapped_view(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return redirect('login')
             
@@ -82,15 +82,16 @@ def validateUserEdit(model):
     return decorator
     
 def cleanKeys(viewFunc):
-    def _wrapped_view(request, *args, **kwargs) -> function:
+    def _wrapped_view(request, *args, **kwargs):
         if request.method == 'POST':
             postData = request.POST.copy()
-        
+
             for key in list(postData.keys()):
                 if postData[key] == "":
                     postData.pop(key)
-        
-        request.POST = postData
+
+            request.POST = postData
 
         return viewFunc(request, *args, **kwargs)
+
     return _wrapped_view

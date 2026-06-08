@@ -14,12 +14,49 @@
         .logout-btn:hover { background-color: #c0392b; }
 
         .dashboard-container { max-width: 800px; margin: 0 auto; }
-        .group-card { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eaeded; }
-        .group-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
-        .group-title { margin: 0; color: #2c3e50; }
-        .toggle-icon { font-weight: bold; font-size: 1.2em; color: #7f8c8d; }
         
-        .assignment-groups-container { display: none; margin-top: 20px; padding-left: 20px; border-left: 3px solid #3498db; }
+        /* --- Clickable Card Styles --- */
+        .group-card { 
+            position: relative; /* Required for the stretch link */
+            background: white; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            border: 1px solid #eaeded; 
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+        /* Subtle lift effect when hovering anywhere on the card */
+        .group-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.08);
+            border-color: #bdc3c7;
+        }
+
+        .group-header { display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .group-title { margin: 0; }
+        
+        .group-title a { 
+            color: #2c3e50; 
+            text-decoration: none; 
+        }
+        /* The magic pseudo-element that expands the click zone to the whole card */
+        .group-title a::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+        }
+        /* Changes title color to blue when the card is hovered */
+        .group-card:hover .group-title a {
+            color: #3498db;
+        }
+        /* ----------------------------- */
+
+        .toggle-icon { font-weight: bold; font-size: 1.2em; color: #7f8c8d; }
     </style>
     <script src="{% static 'pages/js/home.js' %}" defer></script>
 </head>
@@ -46,19 +83,12 @@
                             By: {{ group.owner.getDisplayName }}
                         </p>
                     </div>
-                    <span class="toggle-icon">+</span>
-                </div>
-
-                <div class="assignment-groups-container">
-                    {% if group.description %}
-                        <p style="color: #7f8c8d; margin: 0.2rem 0 0 0;">{{ group.description }}</p>
-                    {% endif %}
+                    <span class="toggle-icon" style="color: #3498db; font-size: 1.5em;">&rarr;</span>
                 </div>
             </div>
         {% empty %}
             <div style="background: #edf2f7; padding: 1.2rem; border-radius: 0.6rem; text-align: center;">
                 <p style="color: #4a5568; margin: 0;">You are not enrolled in any groups yet.</p>
-                <!-- <small style="color: #718096;">Submessage</small> -->
             </div>
         {% endfor %}
     </div>
