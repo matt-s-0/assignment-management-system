@@ -1,0 +1,244 @@
+{% load static %} 
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Create Group</title> 
+    <style> 
+        body { font-family: Arial, sans-serif; margin: 0; padding: 2.5rem; background-color: #f9f9f9; color: #333; } 
+
+        .header-bar { display: flex; justify-content: space-between; align-items: center; background: #2c3e50; padding: 1.2rem 1.5rem; margin: -2.5rem -2.5rem 2.5rem -2.5rem; color: white; } 
+        .header-bar h1 { margin: 0; font-size: 1.5em; } 
+         
+        .logout-btn { background-color: #e74c3c; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.4rem; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: background 0.2s; } 
+        .logout-btn:hover { background-color: #c0392b; } 
+
+        .dashboard-container { max-width: 800px; margin: 0 auto; } 
+         
+        .breadcrumbs { margin-bottom: 1.5rem; font-size: 0.95rem; color: #7f8c8d; } 
+        .breadcrumbs a { color: #3498db; text-decoration: none; transition: color 0.2s; } 
+        .breadcrumbs a:hover { text-decoration: underline; color: #2980b9; } 
+
+        /* --- Title Header Layout Alignment --- */
+        .group-title-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+        .group-title-section h2 { margin: 0; }
+
+        /* --- Card & Content Styles --- */ 
+        .group-card {  
+            background: white;  
+            padding: 20px;  
+            margin-bottom: 15px;  
+            border-radius: 8px;  
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);  
+            border: 1px solid #eaeded;  
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; 
+        } 
+        .group-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 12px rgba(0,0,0,0.08); 
+            border-color: #bdc3c7; 
+        } 
+
+        .group-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; } 
+        .group-title { margin: 0; color: #2c3e50; transition: color 0.2s; } 
+        .group-card:hover .group-title { color: #3498db; } 
+         
+        .toggle-icon { font-weight: bold; font-size: 1.2em; color: #7f8c8d; transition: color 0.2s; } 
+        .group-card:hover .toggle-icon { color: #3498db; } 
+
+        /* Badges and Buttons */
+        .btn-action { padding: 5px 10px; border-radius: 4px; font-size: 0.85em; cursor: pointer; text-decoration: none; font-weight: bold; border: none; }
+        .btn-group-owner { background-color: #9b59b6; color: white; padding: 8px 14px; font-size: 0.9em; }
+        .btn-group-owner:hover { background-color: #8e44ad; }
+        .btn-create { background-color: #2ecc71; color: white; margin-left: 15px; }
+        .btn-create:hover { background-color: #27ae60; }
+        .btn-delete { background-color: #f32c12; color: white; }
+        .btn-edit { background-color: #f39c12; color: white; }
+        .btn-edit:hover { background-color: #d35400; }
+        
+        .status-badge { font-size: 0.75em; padding: 3px 6px; border-radius: 3px; font-weight: bold; margin-left: 8px; }
+        .badge-hidden { background-color: #95a5a6; color: white; }
+        .badge-visible { background-color: #2ecc71; color: white; }
+
+        /* --- Modal Box Styles for Form --- */
+        .modal-content { background-color: #fff; margin: 8% auto; padding: 25px; border-radius: 8px; max-width: 500px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { margin: 0; color: #2c3e50; }
+        
+        /* Form formatting */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
+        .form-group input[type="text"], .form-group input[type="number"], .form-group textarea, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group textarea { height: 80px; resize: vertical; }
+        .form-group-inline { display: flex; align-items: center; gap: 10px; }
+        .btn-submit { background-color: #3498db; color: white; width: 100%; padding: 10px; margin-top: 10px; }
+        .btn-submit:hover { background-color: #2980b9; }
+
+        /* --- Pill / Chip Input Layout Components --- */
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            padding: 6px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-height: 40px;
+            box-sizing: border-box;
+            cursor: text;
+        }
+        .chip-container:focus-within {
+            border-color: #9b59b6; /* Highlights to match your purple owner layout theme */
+            box-shadow: 0 0 4px rgba(155, 89, 182, 0.2);
+        }
+        .chip-input-field {
+            border: none !important;
+            outline: none !important;
+            padding: 4px !important;
+            flex-grow: 1;
+            min-width: 120px;
+            background: transparent;
+        }
+        .mail-chip {
+            display: inline-flex;
+            align-items: center;
+            background-color: #eaeded;
+            color: #2c3e50;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 0.85em;
+            font-weight: 500;
+            user-select: none;
+            border: 1px solid #bdc3c7;
+        }
+        .mail-chip .chip-close {
+            margin-left: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #7f8c8d;
+            transition: color 0.1s;
+        }
+        .mail-chip .chip-close:hover {
+            color: #e74c3c;
+        }
+        /* --- Sleek Error Display Layout --- */
+        .field-error-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            background-color: #fdf2f2; /* Soft red tint */
+            border-left: 4px solid #e74c3c; /* Striking error accent line */
+            border-radius: 4px;
+            padding: 10px 14px;
+            margin-top: 8px; /* Smooth gap beneath the chip containers */
+            box-sizing: border-box;
+        }
+
+        .error-icon {
+            color: #e74c3c;
+            font-size: 1.1em;
+            line-height: 1.2;
+            user-select: none;
+        }
+
+        .error-messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .error-item {
+            margin: 0;
+            padding: 0;
+            color: #c0392b;
+            font-size: 0.85em;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+    </style> 
+    <script src="{% static 'pages/js/home.js' %}" defer></script> 
+    <script src="{% static 'pages/js/createGroup.js' %}" defer></script> 
+</head> 
+<body> 
+
+    <div class="header-bar"> 
+        <h1>Group Dashboard</h1> 
+        <form action="{% url 'logout' %}" method="post" style="margin: 0;"> 
+            {% csrf_token %} 
+            <button type="submit" class="logout-btn">Log Out</button> 
+        </form> 
+    </div> 
+
+    <div class="dashboard-container"> 
+        <div class="breadcrumbs"> 
+            <a href="{% url 'home' %}">Dashboard</a> &rarr;
+            <span>Create Group</span> 
+        </div> 
+
+    <div id="groupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Group</h3>
+            </div>
+            <form id="createGroupForm" action="" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="groupCreate_title">Title:</label>
+                    <input type="text" id="groupCreate_title" name="title" value="{{ form.title.value|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="groupCreate_description">Description:</label>
+                    <textarea id="groupCreate_description" name="description">{{ form.description.value|default:'' }}</textarea>
+                </div>
+                <div class="form-group form-group-inline">
+                    <label for="groupCreate_openGradeBook">Open Grade Book:</label>
+                    <input type="checkbox" id="groupCreate_openGradeBook" name="openGradeBook" value="{{ form.openGradeBook.value|default:False }}">
+                </div>
+
+                <div class="form-group">
+                    {% if form.teachers.errors %}
+                        <div class="field-error-container">
+                            <span class="error-icon">&nbsp;&#x26A0;&nbsp;</span>
+                            <div class="error-messages-list">
+                                {% for error in form.teachers.errors %}
+                                    <p class="error-item">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <br>
+                    {% endif %}
+                    <label>Teacher Emails (Press Enter, Space, or Comma to add):</label>
+                    <div class="chip-container" id="teachers_chip_wrapper">
+                        <input type="text" class="chip-input-field" id="groupCreate_teachers_input" placeholder="Type email...">
+                    </div>
+                    <input type="hidden" id="groupCreate_teachers" name="teachers">
+                </div>
+
+                <div class="form-group">
+                    {% if form.students.errors %}
+                        <div class="field-error-container">
+                            <span class="error-icon">&nbsp;&#x26A0;&nbsp;</span>
+                            <div class="error-messages-list">
+                                {% for error in form.students.errors %}
+                                    <p class="error-item">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <br>
+                    {% endif %}
+                    <label>Student Emails (Press Enter, Space, or Comma to add):</label>
+                    <div class="chip-container" id="students_chip_wrapper">
+                        <input type="text" class="chip-input-field" id="groupCreate_students_input" placeholder="Type email...">
+                    </div>
+                    <input type="hidden" id="groupCreate_students" name="students">
+                </div>
+
+                <button type="submit" class="btn-action btn-submit">Create Group</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</body> 
+</html>

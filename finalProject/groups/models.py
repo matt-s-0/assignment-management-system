@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 class group(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(max_length=1000, null=True, blank=True)
-    openGradeBook = models.BooleanField(default=False)
+    openGradeBook = models.BooleanField(default=False, blank=True)
     
     owner = models.ForeignKey(
         'users.User', 
@@ -14,8 +14,9 @@ class group(models.Model):
 
     teachers = models.ManyToManyField('users.User', related_name='teachers', blank=True)
     students = models.ManyToManyField('users.User', related_name='students', blank=True)
-    
-    def clean(self):
+
+    def save(self, *args, **kwargs):
+
         if self.pk:
             if self.teachers.filter(pk=self.owner.pk).exists():
                 raise ValidationError({'teachers': 'Group owner is in the teacher field.'})
@@ -26,10 +27,24 @@ class group(models.Model):
             if self.teachers.filter(pk__in=self.students.all()).exists():
                 raise ValidationError('A user is in both teacher and student fields.')
             
-        super().clean()
+            super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
-    def getUserRelation(self, user):
-        if self.owner_id == user.id:
+            if self.teachers.filter(pk=self.owner.pk).exists():
+                self.delete()
+                raise ValidationError({'teachers': 'Group owner is in the teacher field.'})
+            
+            if self.students.filter(pk=self.owner.pk).exists():
+                self.delete()
+                raise ValidationError({'students': 'Group owner is in the student field.'})
+            
+            if self.teachers.filter(pk__in=self.students.all()).exists():
+                self.delete()
+                raise ValidationError('A user is in both teacher and student fields.')
+        
+    def getUserRelation(self, user) -> str | None:
+        if self.owner.id == user.id:
             return 'owner'
         if self.teachers.filter(id=user.id).exists():
             return 'teacher'
@@ -37,7 +52,7 @@ class group(models.Model):
             return 'student'
         return None
             
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
 
 class assignmentGroup(models.Model):
@@ -50,7 +65,13 @@ class assignmentGroup(models.Model):
         related_name='assignmentGroups'
     )
 
-    def __str__(self):
+    def save(self, *args, **kwargs):
+        if self.subtitle == None:
+            self.subtitle = ''
+
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
         return f'{self.group.title} - {self.title}'
 
 
@@ -58,11 +79,9 @@ class assignment(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
 
-    isHidden = models.BooleanField(default=True)
+    isHidden = models.BooleanField(default=True, blank=True)
 
-    gradeMax = models.DecimalField(
-        max_digits=6, 
-        decimal_places=3, 
+    gradeMax = models.FloatField(
         null=True, 
         blank=True
     )
@@ -85,7 +104,13 @@ class assignment(models.Model):
         related_name='assignments'
     )
 
-    def __str__(self):
+    def save(self, *args, **kwargs) -> None:
+        if self.gradeMax is not None:
+            self.gradeMax = round(self.gradeMax, 3)
+            
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
         return self.title
     
 class submission(models.Model):
@@ -102,16 +127,14 @@ class submission(models.Model):
     )
     
     # CDR
-    submittedFileContent = models.TextField(max_length=100000, blank=True, null=True)
+    submittedFileContent = models.TextField(max_length=1300000, blank=True, null=True)
     originalFileName = models.CharField(max_length=255, blank=True, null=True)
     submittedText = models.TextField(max_length=100000, blank=True, null=True)
     
     submittedAt = models.DateTimeField(auto_now_add=True)
-    isGraded = models.BooleanField(default=False)
+    isGraded = models.BooleanField(default=False, blank=True)
 
-    grade = models.DecimalField(
-        max_digits=6, 
-        decimal_places=3, 
+    grade = models.FloatField(
         null=True, 
         blank=True,
         default=None
@@ -119,5 +142,5 @@ class submission(models.Model):
 
     teacherFeedback = models.TextField(max_length=10000, blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.student.username} - {self.assignment.title}'

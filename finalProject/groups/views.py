@@ -1,35 +1,53 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from .forms import *
 from .decorators import *
 import base64
+from collections import defaultdict
 
 #################### Groups ####################
 
+@require_GET
+@login_required
+def viewCreateGroup(request):
+    return render(request, 'groups/createGroup.html')
+
+@require_GET
+@login_required
+@validateUserEdit(group)
+def viewEditGroup(request, pk):
+    return render(request, 'groups/editGroup.html', {'group': request.groupObject})
+
 @require_POST
 @login_required
+@cleanKeys
 def createGroup(request):
-    form = groupForm(request.POST)
+    form = groupForm(request.POST, user=request.user)
 
     if form.is_valid():
         newForm = form.save(commit=False)
         newForm.owner = request.user
-        newForm.save()
-        newForm.save_m2m()
 
-    return redirect('home')
+        newForm.save()
+        form.save_m2m()
+
+        return redirect('home')
+    
+    return render(request, 'groups/createGroup.html', {'form': form})
 
 @require_POST
 @validateUserEdit(group)
+@cleanKeys
 def editGroup(request, pk):
     form = groupForm(request.POST, instance=request.groupObject)
 
     if form.is_valid(): 
         form.save()
-
         return redirect('home')
+        
+    return render(request, 'groups/editGroup.html', {'form': form, 'group': request.groupObject})
 
 @require_POST
 @validateUserEdit(group)
@@ -41,16 +59,22 @@ def deleteGroup(request, pk):
 @require_GET
 @validateUserAccess(group)
 def viewGroup(request, pk):
+
     context = {
-        'group': request.groupObject,
-        'userRelation': request.userRelation
+        'group': request.groupObject
     }
-    return render(request, 'group.html', context)
+
+    if request.userRelation == 'owner':
+        return render(request, 'groups/ownerGroup.html', context)
+    elif request.userRelation == 'teacher':
+        return render(request, 'groups/teacherGroup.html', context)
+    return render(request, 'groups/studentGroup.html', context)
 
 #################### Assignment Groups ####################
 
 @require_POST
 @validateUserEdit(group)
+@cleanKeys
 def createAssignmentGroup(request, pk):
     form = assignmentGroupForm(request.POST)
 
@@ -59,17 +83,20 @@ def createAssignmentGroup(request, pk):
         newForm.group = request.groupObject
 
         newForm.save()
-        newForm.save_m2m() 
+        form.save_m2m() 
         
-        return redirect('home')
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignmentGroup)
+@cleanKeys
 def editAssignmentGroup(request, pk):
     form = assignmentGroupForm(request.POST, instance=request.baseObject)
 
     if form.is_valid(): 
         form.save()
+
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignmentGroup)
@@ -82,6 +109,7 @@ def deleteAssignmentGroup(request, pk):
 
 @require_POST
 @validateUserEdit(assignmentGroup)
+@cleanKeys
 def createAssignment(request, pk):
     form = assignmentForm(request.POST)
 
@@ -90,17 +118,20 @@ def createAssignment(request, pk):
         newForm.assignmentGroup = request.baseObject
 
         newForm.save()
-        newForm.save_m2m() 
+        form.save_m2m() 
         
     return redirect('home')
 
 @require_POST
 @validateUserEdit(assignment)
+@cleanKeys
 def editAssignment(request, pk):
     form = assignmentForm(request.POST, instance=request.baseObject)
 
     if form.is_valid(): 
         form.save()
+
+    return redirect('home')
 
 @require_POST
 @validateUserEdit(assignment)
@@ -111,32 +142,102 @@ def deleteAssignment(request, pk):
 
 @require_GET
 @validateUserAccess(assignment)
-def viewAssignment(request, groupPK, pk):
+def viewAssignment(request, pk):
+
+    if request.baseObject.isHidden == True:
+        return redirect('home')
+    
+    latestSubmission = None
+
+    if request.userRelation == 'student':
+
+        latestSubmission = request.baseObject.submissions.filter(
+        student=request.user
+        ).only('submittedText', 'submittedFileContent').order_by('-submittedAt').first()
+
+    submissionExists = latestSubmission is not None
+    
+    aType = request.baseObject.assignmentType
+
+    if aType == 'unsubmittable':
+        assignmentType = 'Not Submittable'
+    elif aType == 'resubmittable':
+        assignmentType = 'Can be Resubmitted'
+    else:
+        assignmentType = 'Can be Submitted Once'
+
     context = {
         'group': request.groupObject,
         'assignment': request.baseObject,
-        'userRelation': request.userRelation,
-        'isSubmission': False
+        'type': assignmentType
     }
-    return render(request, 'assignment.html', context)
+
+    if submissionExists:
+        context['latestSubmission'] = latestSubmission
+
+    if aType != 'unsubmittable' and submissionExists:
+        
+        if aType == 'resubmittable' and not latestSubmission.isGraded:
+            return render(request, 'groups/assignments/studentResubmissionView.html', context)
+        else:
+            return render(request, 'groups/assignments/gradedView.html', context)
+    else:
+        userType = request.groupObject.getUserRelation(request.user)
+        if not userType or not (userType == 'owner' or userType == 'teacher'):
+            return render(request, 'groups/assignments/studentAssignmentView.html', context)
+        
+        else:
+            students = request.groupObject.students.all()
+            studentData = []
+
+            submissions = defaultdict(list)
+
+            for s in request.baseObject.submissions.all().order_by('-submittedAt'):
+                submissions[s.student_id].append(s)
+
+            for student in students:
+                studentSubmissions = submissions.get(student.id, [])
+
+                studentData.append({
+                    'student': student,
+                    'submissions': studentSubmissions,
+                    'latestSubmission': (
+                        studentSubmissions[0] if studentSubmissions else None
+                    )
+                })
+
+            context = {
+                'group': request.groupObject,
+                'assignment': request.baseObject,
+                'type': assignmentType,
+                'studentData': studentData
+            }
+
+            return render(request, 'groups/assignments/gradingDashboard.html', context)
 
 #################### Submissions ####################
 
 @require_POST
 @validateUserAccess(assignment)
-def createSubmission(request, pk, submittedTextContent=''):
+@cleanKeys
+def createSubmission(request, pk):
     # checks if assignment can be submitted
-    if request.baseObject.assignment.assignmentType == 'unsubmittable':
-        return HttpResponseForbidden(f"You may not submit: {request.baseObject.assignment.title}")
+    if request.baseObject.assignmentType == 'unsubmittable':
+        return HttpResponseForbidden(f"You may not submit: {request.baseObject.title}")
     
     # checks if the student already made a submission for an assignment that can only be submitted once
-    if request.baseObject.group == 'submittable' and request.baseObject.assignment.submissions.filter(student=request.user).exists():
-        return HttpResponseForbidden(f"You have already submitted: {request.baseObject.assignment.title}")
+    if request.baseObject.assignmentType == 'submittable' and request.baseObject.submissions.filter(student=request.user).exists():
+        return HttpResponseForbidden(f"You have already submitted: {request.baseObject.title}")
     
+    maxFileSize = 1048576  # 1 MB in bytes, 1024 * 1024
+
     # CDR
     uploadedFile = request.FILES.get('uploadedFile')
 
     if uploadedFile:
+        if uploadedFile.size > maxFileSize:
+            return JsonResponse({'error': 'File size exceeds the 1 MB limit.'}, status=400)
+        
         fileName = uploadedFile.name
         fileContent = base64.b64encode(uploadedFile.read()).decode('utf-8')
     else:
@@ -151,37 +252,30 @@ def createSubmission(request, pk, submittedTextContent=''):
         newForm.assignment = request.baseObject
         newForm.student = request.user
 
-        newForm.submittedText = submittedTextContent
         newForm.submittedFileContent = fileContent
         newForm.originalFileName = fileName
 
         newForm.save()
-        newForm.save_m2m() 
+        form.save_m2m() 
         
     return redirect('home')
 
 
 @require_POST
 @validateUserEdit(submission)
+@cleanKeys
 def gradeSubmission(request, pk):
-    form = teacherSubmissionForm(request.POST, instance=request.baseObject)
 
-    if form.is_valid(): 
-        newForm = form.save(commit=False)
+    object = request.baseObject
 
-        newForm.isGraded = True
+    object.grade = request.POST.get('grade')
+    object.teacherFeedback = request.POST.get('teacherFeedback')
+    object.isGraded = True
 
-        newForm.save()
+    object.save(update_fields=[
+        'grade',
+        'teacherFeedback',
+        'isGraded'
+    ])
 
     return redirect('home')
-
-@require_GET
-@validateUserAccess(submission)
-def viewSubmission(request, pk):
-    context = {
-        'group': request.groupObject,
-        'submission': request.baseObject,
-        'userRelation': request.userRelation,
-        'isSubmission': True
-    }
-    return render(request, 'submission.html', context)

@@ -9,10 +9,10 @@ class User(AbstractUser):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email']
 
-    def getDisplayName(self):
+    def getDisplayName(self) -> str | None:
         return self.displayName
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         if not self.displayName:
             self.displayName = self.username
         super().save(*args, **kwargs)
