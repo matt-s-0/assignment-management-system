@@ -14,8 +14,9 @@ class group(models.Model):
 
     teachers = models.ManyToManyField('users.User', related_name='teachers', blank=True)
     students = models.ManyToManyField('users.User', related_name='students', blank=True)
-    
-    def clean(self) -> None:
+
+    def save(self, *args, **kwargs):
+
         if self.pk:
             if self.teachers.filter(pk=self.owner.pk).exists():
                 raise ValidationError({'teachers': 'Group owner is in the teacher field.'})
@@ -26,8 +27,38 @@ class group(models.Model):
             if self.teachers.filter(pk__in=self.students.all()).exists():
                 raise ValidationError('A user is in both teacher and student fields.')
             
-        super().clean()
+            super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
+            if self.teachers.filter(pk=self.owner.pk).exists():
+                self.delete()
+                raise ValidationError({'teachers': 'Group owner is in the teacher field.'})
+            
+            if self.students.filter(pk=self.owner.pk).exists():
+                self.delete()
+                raise ValidationError({'students': 'Group owner is in the student field.'})
+            
+            if self.teachers.filter(pk__in=self.students.all()).exists():
+                self.delete()
+                raise ValidationError('A user is in both teacher and student fields.')
+        
+        
+    
+    # def clean(self) -> None:
+
+    #     super().clean()
+
+    #     if self.pk:
+    #         if self.teachers.filter(pk=self.owner.pk).exists():
+    #             raise ValidationError({'teachers': 'Group owner is in the teacher field.'})
+            
+    #         if self.students.filter(pk=self.owner.pk).exists():
+    #             raise ValidationError({'students': 'Group owner is in the student field.'})
+            
+    #         if self.teachers.filter(pk__in=self.students.all()).exists():
+    #             raise ValidationError('A user is in both teacher and student fields.')
+        
     def getUserRelation(self, user) -> str | None:
         if self.owner.id == user.id:
             return 'owner'

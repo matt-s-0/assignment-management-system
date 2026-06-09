@@ -142,8 +142,8 @@ function createChipInputManager(wrapperId, inputId, hiddenFieldId) {
                 chipsList = [];
             } else {
                 chipsList = commaSeparatedString.split(',')
-                                                 .map(s => s.trim())
-                                                 .filter(s => s.length > 0);
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
             }
             renderChips();
             syncHiddenField();
@@ -188,6 +188,7 @@ function initializeGroupModal() {
         // Populate chip arrays seamlessly using control pipelines
         if (teacherChips) teacherChips.setValues(teachersStr);
         if (studentChips) studentChips.setValues(studentsStr);
+
 
         form.action = `/group/${id}/edit/`;
         modal.style.display = "block";

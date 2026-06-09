@@ -12,6 +12,34 @@ class groupForm(forms.ModelForm):
         # auto set: owner
         fields = ['title', 'description', 'openGradeBook', 'teachers', 'students']
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+
+        cleanedData = super().clean()
+
+        tEmails = [e.strip().lower() for e in cleanedData.get('teachers', '').split(',') if e.strip()]
+        sEmails = [e.strip().lower() for e in cleanedData.get('students', '').split(',') if e.strip()]
+
+        overlapping_emails = set(tEmails).intersection(set(sEmails))
+        if overlapping_emails:
+            self.add_error('teachers', 'A user cannot be in both the teacher and student fields.')
+
+        owner = self.user or (self.instance.owner if (self.instance and hasattr(self.instance, 'owner')) else None)
+
+        if owner and getattr(owner, 'email', None):
+            owner_email = owner.email.strip().lower()
+            
+            if owner_email in tEmails:
+                self.add_error('teachers', 'The group owner cannot be added as a teacher.')
+                
+            if owner_email in sEmails:
+                self.add_error('students', 'The group owner cannot be added as a student.')
+
+        return cleanedData
+
     def save(self, commit=True):
         instance = super().save(commit=False)
         

@@ -20,14 +20,29 @@
     <h3>Create Group</h3>
     <form action="/group/create/" method="POST">
         {% csrf_token %}
-        <label>Title: <input type="text" name="title" required></label>
+        <label>Title: <input type="text" name="title" value="{{ form.title.value|default:'' }}" required></label>
             <br><br>
-        <label>Description: <textarea name="description"></textarea></label>
+        <label>Description: <textarea name="description">{{ form.description.value|default:'' }}</textarea></label>
             <br><br>
         <label>Open Grade Book: <input type="checkbox" name="openGradeBook" value="true"></label>
             <br><br>
+        {% if form.teachers.errors %}
+            <div class="error-message" style="color: red; font-size: 0.9em;">
+                {% for error in form.teachers.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
         <label>Teachers (Emails, comma-separated): <input type="text" name="teachers"></label>
             <br><br>
+
+        {% if form.students.errors %}
+            <div class="error-message" style="color: red; font-size: 0.9em;">
+                {% for error in form.students.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
         <label>Students (Emails, comma-separated): <input type="text" name="students"></label>
             <br><br>
         <button type="submit">Submit</button>

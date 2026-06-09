@@ -32,6 +32,7 @@
 
         h2 { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #eaeded; padding-bottom: 0.5rem; }
         h3 { color: #34495e; margin-top: 1.5rem; font-size: 1.2em; }
+        h4 { border-bottom: 2px solid #eaeded; }
 
         /* Form Layout & Stylings */
         .form-group {
@@ -108,7 +109,13 @@
 
         <div class="group-card">
             <h2>{{ assignment.title }}</h2>
-            <h3>Student: Create Submission</h3>
+            <h3>{{ type }}</h3>
+
+            <p>{{ assignment.description }}</p>
+
+            <h4></h4>
+
+            {% if not assignment.assignmentType == 'unsubmittable' %}
             
             <form id="submitForm" action="/assignment/{{ assignment.id }}/submit/" method="POST" enctype="multipart/form-data" style="margin-top: 1.5rem;">
                 {% csrf_token %}
@@ -127,6 +134,7 @@
                     <button type="submit" class="submit-btn">Submit Assignment</button>
                 </div>
             </form>
+            {% endif %}
         </div>
     </div>
 

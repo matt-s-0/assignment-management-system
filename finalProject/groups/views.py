@@ -13,7 +13,7 @@ from collections import defaultdict
 @login_required
 @cleanKeys
 def createGroup(request):
-    form = groupForm(request.POST)
+    form = groupForm(request.POST, user=request.user)
 
     if form.is_valid():
         newForm = form.save(commit=False)
@@ -21,12 +21,10 @@ def createGroup(request):
 
         newForm.save()
         form.save_m2m()
-    else:
-        ######################################## DEBUG ########################################
-        print("Form Validation Failed!")
-        print(form.errors.as_json())
 
-    return redirect('home')
+        return redirect('home')
+    
+    return render(request, 'testForms.html', {'form': form})
 
 @require_POST
 @validateUserEdit(group)
@@ -36,8 +34,9 @@ def editGroup(request, pk):
 
     if form.is_valid(): 
         form.save()
-
-    return redirect('home')
+        return redirect('home')
+        
+    return render(request, 'testForms.html', {'form': form})
 
 @require_POST
 @validateUserEdit(group)
@@ -134,7 +133,7 @@ def deleteAssignment(request, pk):
 @validateUserAccess(assignment)
 def viewAssignment(request, pk):
 
-    if request.baseObject.isHidden == True and request.userRelation == 'student':
+    if request.baseObject.isHidden == True:
         return redirect('home')
     
     latestSubmission = None
@@ -150,11 +149,11 @@ def viewAssignment(request, pk):
     aType = request.baseObject.assignmentType
 
     if aType == 'unsubmittable':
-        assignmentType = 'Not submittable'
+        assignmentType = 'Not Submittable'
     elif aType == 'resubmittable':
-        assignmentType = 'Can be resubmitted'
+        assignmentType = 'Can be Resubmitted'
     else:
-        assignmentType = 'Can be submitted once'
+        assignmentType = 'Can be Submitted Once'
 
     context = {
         'group': request.groupObject,
