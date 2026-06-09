@@ -43,22 +43,6 @@ class group(models.Model):
                 self.delete()
                 raise ValidationError('A user is in both teacher and student fields.')
         
-        
-    
-    # def clean(self) -> None:
-
-    #     super().clean()
-
-    #     if self.pk:
-    #         if self.teachers.filter(pk=self.owner.pk).exists():
-    #             raise ValidationError({'teachers': 'Group owner is in the teacher field.'})
-            
-    #         if self.students.filter(pk=self.owner.pk).exists():
-    #             raise ValidationError({'students': 'Group owner is in the student field.'})
-            
-    #         if self.teachers.filter(pk__in=self.students.all()).exists():
-    #             raise ValidationError('A user is in both teacher and student fields.')
-        
     def getUserRelation(self, user) -> str | None:
         if self.owner.id == user.id:
             return 'owner'
@@ -80,6 +64,12 @@ class assignmentGroup(models.Model):
         on_delete=models.CASCADE, 
         related_name='assignmentGroups'
     )
+
+    def save(self, *args, **kwargs):
+        if self.subtitle == None:
+            self.subtitle = ''
+
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f'{self.group.title} - {self.title}'

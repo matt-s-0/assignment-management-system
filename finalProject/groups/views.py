@@ -9,6 +9,17 @@ from collections import defaultdict
 
 #################### Groups ####################
 
+@require_GET
+@login_required
+def viewCreateGroup(request):
+    return render(request, 'groups/createGroup.html')
+
+@require_GET
+@login_required
+@validateUserEdit(group)
+def viewEditGroup(request, pk):
+    return render(request, 'groups/editGroup.html', {'group': request.groupObject})
+
 @require_POST
 @login_required
 @cleanKeys
@@ -24,7 +35,7 @@ def createGroup(request):
 
         return redirect('home')
     
-    return render(request, 'testForms.html', {'form': form})
+    return render(request, 'groups/createGroup.html', {'form': form})
 
 @require_POST
 @validateUserEdit(group)
@@ -36,7 +47,7 @@ def editGroup(request, pk):
         form.save()
         return redirect('home')
         
-    return render(request, 'testForms.html', {'form': form})
+    return render(request, 'groups/editGroup.html', {'form': form, 'group': request.groupObject})
 
 @require_POST
 @validateUserEdit(group)

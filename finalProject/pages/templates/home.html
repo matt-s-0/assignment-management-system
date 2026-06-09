@@ -13,11 +13,14 @@
         .logout-btn { background-color: #e74c3c; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.4rem; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: background 0.2s; }
         .logout-btn:hover { background-color: #c0392b; }
 
+        .create-group-btn { background-color: #3c89e7; color: white; display: inline; border: none; padding: 0.75rem; border-radius: 0.4rem; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: background 0.2s; }
+        .create-group-btn:hover { background-color: #3273c2; }
+
         .dashboard-container { max-width: 800px; margin: 0 auto; }
         
         /* --- Clickable Card Styles --- */
         .group-card { 
-            position: relative; /* Required for the stretch link */
+            position: relative;
             background: white; 
             padding: 20px; 
             margin-bottom: 15px; 
@@ -63,7 +66,7 @@
 <body>
 
     <div class="header-bar">
-        <h1>Student Dashboard</h1>
+        <h1>Dashboard</h1>
         <form action="{% url 'logout' %}" method="post" style="margin: 0;">
             {% csrf_token %}
             <button type="submit" class="logout-btn">Log Out</button>
@@ -71,7 +74,12 @@
     </div>
 
     <div class="dashboard-container">
-        <h2>Groups</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Groups</h2>
+            <a href="/create/group/" style="text-decoration: none;">
+                <button class="create-group-btn">Create Group</button>
+            </a>
+        </div>
         <hr>
 
         {% for group in groups %}

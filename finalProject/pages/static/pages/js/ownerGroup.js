@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     initializeAssignmentModals();
-    initializeGroupModal();
+    initializeAssignmentGroupModals();
 });
 
-// --- ASSIGNMENT MODAL HANDLING LOGIC ---
 function initializeAssignmentModals() {
+
     const modal = document.getElementById('assignmentModal');
     const form = document.getElementById('assignmentForm');
     const modalTitle = document.getElementById('modalTitleDisplay');
@@ -27,8 +27,8 @@ function initializeAssignmentModals() {
             const groupTitle = button.getAttribute('data-group-title');
 
             form.action = `/assignment-group/${groupId}/assignment/create/`;
-            modalTitle.innerHTML = `Create Assignment inside <span style="color:#3498db;">${escapeHTML(groupTitle)}</span>`;
-            submitBtn.innerText = "Create Assignment";
+            if (modalTitle) modalTitle.innerHTML = `Create Assignment inside <span style="color:#3498db;">${escapeHTML(groupTitle)}</span>`;
+            if (submitBtn) submitBtn.innerText = "Create Assignment";
             modal.style.display = "block";
         });
     });
@@ -45,15 +45,15 @@ function initializeAssignmentModals() {
             const gradeMax = button.getAttribute('data-grademax');
             const type = button.getAttribute('data-type');
 
-            fieldTitle.value = title;
-            fieldDesc.value = description;
-            fieldGrade.value = gradeMax;
-            fieldHidden.checked = isHidden;
-            fieldType.value = type;
+            if (fieldTitle) fieldTitle.value = title || '';
+            if (fieldDesc) fieldDesc.value = description || '';
+            if (fieldGrade) fieldGrade.value = gradeMax || '';
+            if (fieldHidden) fieldHidden.checked = isHidden;
+            if (fieldType) fieldType.value = type || 'submittable';
 
             form.action = `/assignment/${id}/edit/`;
-            modalTitle.innerHTML = `Edit Assignment: <span style="color:#f39c12;">${escapeHTML(title)}</span>`;
-            submitBtn.innerText = "Save Changes";
+            if (modalTitle) modalTitle.innerHTML = `Edit Assignment: <span style="color:#f39c12;">${escapeHTML(title)}</span>`;
+            if (submitBtn) submitBtn.innerText = "Save Changes";
             modal.style.display = "block";
         });
     });
@@ -63,148 +63,64 @@ function initializeAssignmentModals() {
     }
 }
 
-// --- DYNAMIC PILL/CHIP FUNCTION ENGINE ---
-function createChipInputManager(wrapperId, inputId, hiddenFieldId) {
-    const wrapper = document.getElementById(wrapperId);
-    const input = document.getElementById(inputId);
-    const hiddenInput = document.getElementById(hiddenFieldId);
-    let chipsList = [];
+function initializeAssignmentGroupModals() {
 
-    if (!wrapper || !input || !hiddenInput) return null;
+    const modal = document.getElementById('assignmentGroupModal');
+    const form = document.getElementById('createAssignGroupForm');
+    
+    const modalTitle = document.getElementById('groupModalTitleDisplay');
+    const submitBtn = document.getElementById('groupSubmitBtnText');
+    const closeBtn = document.getElementById('closeAssignmentGroupModalBtn');
 
-    // Direct cursor focus window target whenever background wrapper is clicked
-    wrapper.addEventListener('click', () => input.focus());
+    const fieldTitle = document.getElementById('id_title');
+    const fieldSubtitle = document.getElementById('id_subtitle');
 
-    function syncHiddenField() {
-        hiddenInput.value = chipsList.join(', ');
-    }
+    if (!modal || !form) return;
 
-    function removeChip(val) {
-        chipsList = chipsList.filter(item => item !== val);
-        renderChips();
-        syncHiddenField();
-    }
+    // --- CREATE ---
+    document.querySelectorAll('.group-trigger-create').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            form.reset();
+            
+            const mainGroupId = button.getAttribute('data-main-group-id'); 
 
-    function renderChips() {
-        // Clear out existing chip structures safely without purging our main keyboard entry node
-        wrapper.querySelectorAll('.mail-chip').forEach(chip => chip.remove());
-
-        chipsList.forEach(value => {
-            const chipNode = document.createElement('span');
-            chipNode.className = 'mail-chip';
-            chipNode.innerText = value;
-
-            const closeAction = document.createElement('span');
-            closeAction.className = 'chip-close';
-            closeAction.innerHTML = '&times;';
-            closeAction.addEventListener('click', (e) => {
-                e.stopPropagation(); // Avoid triggering parent wrapper focus
-                removeChip(value);
-            });
-
-            chipNode.appendChild(closeAction);
-            wrapper.insertBefore(chipNode, input);
+            form.action = `/group/${mainGroupId}/assignment-group/create/`;
+            
+            if (modalTitle) modalTitle.innerHTML = 'Create Assignment Group';
+            if (submitBtn) submitBtn.innerText = "Create Assignment Group";
+            modal.style.display = "block";
         });
-    }
-
-    function addChipFromInput() {
-        let textVal = input.value.trim().replace(/,/g, '');
-        if (textVal && !chipsList.includes(textVal)) {
-            chipsList.push(textVal);
-            renderChips();
-            syncHiddenField();
-        }
-        input.value = '';
-    }
-
-    // Capture completion inputs (Enter, Space, Comma)
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ' || e.key === ',') {
-            e.preventDefault();
-            addChipFromInput();
-        } else if (e.key === 'Backspace' && input.value === '' && chipsList.length > 0) {
-            // Remove last item if backspacing into an empty text field
-            chipsList.pop();
-            renderChips();
-            syncHiddenField();
-        }
     });
 
-    // Handle blur events when clicking away from modal inputs
-    input.addEventListener('blur', () => {
-        addChipFromInput();
-    });
+    // --- EDIT ---
+    document.querySelectorAll('.group-trigger-edit').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            form.reset();
 
-    // Return control API handlers so our outer script sets values smoothly on modal load
-    return {
-        setValues: function(commaSeparatedString) {
-            if (!commaSeparatedString || commaSeparatedString.trim() === "") {
-                chipsList = [];
-            } else {
-                chipsList = commaSeparatedString.split(',')
-                .map(s => s.trim())
-                .filter(s => s.length > 0);
-            }
-            renderChips();
-            syncHiddenField();
-            input.value = '';
-        }
-    };
-}
+            const id = button.getAttribute('data-id');
+            const title = button.getAttribute('data-title');
+            const subtitle = button.getAttribute('data-subtitle');
 
-// --- GROUP SETTINGS MODAL HANDLING LOGIC ---
-function initializeGroupModal() {
-    const modal = document.getElementById('groupModal');
-    const form = document.getElementById('editGroupForm');
-    const triggerBtn = document.getElementById('editGroupTriggerBtn');
-    const closeBtn = document.getElementById('closeGroupModalBtn');
+            if (fieldTitle) fieldTitle.value = title || '';
+            if (fieldSubtitle) fieldSubtitle.value = subtitle || '';
 
-    const fieldTitle = document.getElementById('groupEdit_title');
-    const fieldDesc = document.getElementById('groupEdit_description');
-    const fieldGradebook = document.getElementById('groupEdit_openGradeBook');
-
-    if (!modal || !form || !triggerBtn) return;
-
-    // Spin up chip UI controllers safely
-    const teacherChips = createChipInputManager('teachers_chip_wrapper', 'groupEdit_teachers_input', 'groupEdit_teachers');
-    const studentChips = createChipInputManager('students_chip_wrapper', 'groupEdit_students_input', 'groupEdit_students');
-
-    triggerBtn.addEventListener('click', () => {
-        form.reset();
-
-        const id = triggerBtn.getAttribute('data-id');
-        const title = triggerBtn.getAttribute('data-title');
-        const description = triggerBtn.getAttribute('data-description');
-        const openGradebook = triggerBtn.getAttribute('data-open-gradebook') === "true";
-        
-        const teachersStr = triggerBtn.getAttribute('data-teachers');
-        const studentsStr = triggerBtn.getAttribute('data-students');
-
-        // Populate base fields
-        fieldTitle.value = title;
-        fieldDesc.value = description;
-        fieldGradebook.checked = openGradebook;
-
-        // Populate chip arrays seamlessly using control pipelines
-        if (teacherChips) teacherChips.setValues(teachersStr);
-        if (studentChips) studentChips.setValues(studentsStr);
-
-
-        form.action = `/group/${id}/edit/`;
-        modal.style.display = "block";
+            form.action = `/assignment-group/${id}/edit/`; 
+            
+            if (modalTitle) modalTitle.innerHTML = `Edit Assignment Group: <span style="color:#f39c12;">${escapeHTML(title)}</span>`;
+            if (submitBtn) submitBtn.innerText = "Save Changes";
+            modal.style.display = "block";
+        });
     });
 
     if (closeBtn) {
         closeBtn.addEventListener('click', () => modal.style.display = "none");
     }
 
-    window.addEventListener('click', (event) => {
-        if (event.target === modal) {
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
             modal.style.display = "none";
-        }
-        const assignModal = document.getElementById('assignmentModal');
-        if (event.target === assignModal) {
-            assignModal.style.display = "none";
         }
     });
 }

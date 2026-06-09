@@ -36,6 +36,8 @@ urlpatterns = [
     path('test/', testDashboard, name='testPanel'),
 
     #################### Groups ####################
+    path('create/group/', views.viewCreateGroup, name='viewCreateGroup'),
+    path('edit/group/<int:pk>/', views.viewEditGroup, name='viewEditGroup'),
     path('group/create/', views.createGroup, name='createGroup'),
     path('group/<int:pk>/', views.viewGroup, name='viewGroup'),
     path('group/<int:pk>/edit/', views.editGroup, name='editGroup'),

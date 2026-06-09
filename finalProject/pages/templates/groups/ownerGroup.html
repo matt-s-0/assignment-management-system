@@ -7,71 +7,29 @@
     <title>Owner Dashboard - {{ group.title }}</title> 
     <style> 
         body { font-family: Arial, sans-serif; margin: 0; padding: 2.5rem; background-color: #f9f9f9; color: #333; } 
-
         .header-bar { display: flex; justify-content: space-between; align-items: center; background: #2c3e50; padding: 1.2rem 1.5rem; margin: -2.5rem -2.5rem 2.5rem -2.5rem; color: white; } 
         .header-bar h1 { margin: 0; font-size: 1.5em; } 
-         
         .logout-btn { background-color: #e74c3c; color: white; border: none; padding: 0.75rem 1rem; border-radius: 0.4rem; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: background 0.2s; } 
         .logout-btn:hover { background-color: #c0392b; } 
-
         .dashboard-container { max-width: 800px; margin: 0 auto; } 
-         
         .breadcrumbs { margin-bottom: 1.5rem; font-size: 0.95rem; color: #7f8c8d; } 
         .breadcrumbs a { color: #3498db; text-decoration: none; transition: color 0.2s; } 
         .breadcrumbs a:hover { text-decoration: underline; color: #2980b9; } 
-
-        /* --- Title Header Layout Alignment --- */
         .group-title-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
         .group-title-section h2 { margin: 0; }
-
-        /* --- Card & Content Styles --- */ 
-        .group-card {  
-            background: white;  
-            padding: 20px;  
-            margin-bottom: 15px;  
-            border-radius: 8px;  
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);  
-            border: 1px solid #eaeded;  
-            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; 
-        } 
-        .group-card:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 5px 12px rgba(0,0,0,0.08); 
-            border-color: #bdc3c7; 
-        } 
-
+        .group-card { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #eaeded; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; } 
+        .group-card:hover { transform: translateY(-2px); box-shadow: 0 5px 12px rgba(0,0,0,0.08); border-color: #bdc3c7; } 
         .group-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; } 
         .group-title { margin: 0; color: #2c3e50; transition: color 0.2s; } 
         .group-card:hover .group-title { color: #3498db; } 
-         
         .toggle-icon { font-weight: bold; font-size: 1.2em; color: #7f8c8d; transition: color 0.2s; } 
         .group-card:hover .toggle-icon { color: #3498db; } 
-         
         .assignment-groups-container { display: none; margin-top: 20px; padding-left: 20px; border-left: 3px solid #3498db; } 
         .assignment-group { margin-bottom: 15px; } 
         .assignments-list { list-style-type: none; padding: 0; margin: 0; } 
-         
-        .assignment-item {  
-            background: #f4f6f7;  
-            margin-bottom: 8px;  
-            border-radius: 4px;  
-            transition: background 0.2s; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-right: 12px;
-        } 
+        .assignment-item { background: #f4f6f7; margin-bottom: 8px; border-radius: 4px; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center; padding-right: 12px; } 
         .assignment-item:hover { background: #eaeded; } 
-        
-        .assignment-item a.assignment-link { 
-            display: block;  
-            padding: 12px;  
-            color: #333; 
-            text-decoration: none; 
-            flex-grow: 1;
-        } 
-
-        /* Badges and Buttons */
+        .assignment-item a.assignment-link { display: block; padding: 12px; color: #333; text-decoration: none; flex-grow: 1; } 
         .btn-action { padding: 5px 10px; border-radius: 4px; font-size: 0.85em; cursor: pointer; text-decoration: none; font-weight: bold; border: none; }
         .btn-group-owner { background-color: #9b59b6; color: white; padding: 8px 14px; font-size: 0.9em; }
         .btn-group-owner:hover { background-color: #8e44ad; }
@@ -80,20 +38,18 @@
         .btn-delete { background-color: #f32c12; color: white; }
         .btn-edit { background-color: #f39c12; color: white; }
         .btn-edit:hover { background-color: #d35400; }
-        
+        .btn-create-agn-group { background-color: #3c89e7; color: white; padding: 8px 14px; font-size: 0.9em; }
+        .btn-create-agn-group:hover { background-color: #3273c2; }
         .status-badge { font-size: 0.75em; padding: 3px 6px; border-radius: 3px; font-weight: bold; margin-left: 8px; }
         .badge-hidden { background-color: #95a5a6; color: white; }
         .badge-visible { background-color: #2ecc71; color: white; }
-
-        /* --- Modal Box Styles for Form --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .group-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: #fff; margin: 8% auto; padding: 25px; border-radius: 8px; max-width: 500px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h3 { margin: 0; color: #2c3e50; }
         .close-modal { font-size: 1.5rem; cursor: pointer; color: #aaa; }
         .close-modal:hover { color: #333; }
-        
-        /* Form formatting */
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9em; }
         .form-group input[type="text"], .form-group input[type="number"], .form-group textarea, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
@@ -101,58 +57,9 @@
         .form-group-inline { display: flex; align-items: center; gap: 10px; }
         .btn-submit { background-color: #3498db; color: white; width: 100%; padding: 10px; margin-top: 10px; }
         .btn-submit:hover { background-color: #2980b9; }
-
-        /* --- Pill / Chip Input Layout Components --- */
-        .chip-container {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 6px;
-            padding: 6px;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            min-height: 40px;
-            box-sizing: border-box;
-            cursor: text;
-        }
-        .chip-container:focus-within {
-            border-color: #9b59b6; /* Highlights to match your purple owner layout theme */
-            box-shadow: 0 0 4px rgba(155, 89, 182, 0.2);
-        }
-        .chip-input-field {
-            border: none !important;
-            outline: none !important;
-            padding: 4px !important;
-            flex-grow: 1;
-            min-width: 120px;
-            background: transparent;
-        }
-        .mail-chip {
-            display: inline-flex;
-            align-items: center;
-            background-color: #eaeded;
-            color: #2c3e50;
-            padding: 4px 8px;
-            border-radius: 16px;
-            font-size: 0.85em;
-            font-weight: 500;
-            user-select: none;
-            border: 1px solid #bdc3c7;
-        }
-        .mail-chip .chip-close {
-            margin-left: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #7f8c8d;
-            transition: color 0.1s;
-        }
-        .mail-chip .chip-close:hover {
-            color: #e74c3c;
-        }
     </style> 
-    <script src="{% static 'pages/js/home.js' %}" defer></script> 
-    <script src="{% static 'pages/js/ownerGroup.js' %}" defer></script> 
+    <script src="{% static 'pages/js/home.js' %}" defer></script>
+    <script src="{% static 'pages/js/ownerGroup.js' %}" defer></script>
 </head> 
 <body> 
 
@@ -166,27 +73,30 @@
 
     <div class="dashboard-container"> 
         <div class="breadcrumbs"> 
-            <a href="{% url 'home' %}">Dashboard</a> &rarr;  
+            <a href="{% url 'home' %}">Dashboard</a> &rarr; 
             <span>{{ group.title }} (Owner)</span> 
         </div> 
 
         <div class="group-title-section">
             <h2>{{ group.title }}</h2> 
-            
-            <button type="button" class="btn-action btn-group-owner" id="editGroupTriggerBtn"
-                data-id="{{ group.id }}"
-                data-title="{{ group.title }}"
-                data-description="{{ group.description|default:'' }}"
-                data-open-gradebook="{% if group.openGradeBook %}true{% else %}false{% endif %}"
-                data-teachers="{% for teacher in group.teachers.all %}{{ teacher.email }}{% if not forloop.last %}, {% endif %}{% endfor %}"
-                data-students="{% for student in group.students.all %}{{ student.email }}{% if not forloop.last %}, {% endif %}{% endfor %}">
-                ⚙ Edit Group Settings
+            <a href="/edit/group/{{ group.id }}" style="text-decoration: none;">
+                <button type="button" class="btn-action btn-group-owner">
+                    ⚙ Edit Group Settings
+                </button>
+            </a>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            {% if group.description %} 
+                <p style="color: #7f8c8d; margin: 0; display: inline;">{{ group.description }}</p> 
+            {% endif %} 
+
+            <button class="btn-action btn-create-agn-group group-trigger-create" 
+                    data-main-group-id="{{ group.id }}" 
+                    style="display: inline;">
+                Create Assignment Group
             </button>
         </div>
-         
-        {% if group.description %} 
-            <p style="color: #7f8c8d; margin: 0;">{{ group.description }}</p> 
-        {% endif %} 
 
         <br> 
         <hr> 
@@ -200,12 +110,30 @@
                             {{ ag.subtitle }} 
                         </p> 
                     </div> 
-                    <div style="display: flex; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+
                         <button type="button" class="btn-action btn-create action-trigger-create" 
                             data-group-id="{{ ag.id }}" 
                             data-group-title="{{ ag.title }}">
                             + Add Assignment
                         </button>
+
+                        <button type="button" class="btn-action btn-edit group-trigger-edit" 
+                                data-id="{{ ag.id }}" 
+                                data-title="{{ ag.title }}" 
+                                data-subtitle="{{ ag.subtitle }}">
+                            Edit Category
+                        </button>
+
+                        <form id="deleteGroupForm" action="/assignment-group/{{ ag.id }}/delete/" method="POST" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="btn-action btn-delete action-trigger-delete"
+                                    onclick="return confirm('Are you sure you would like to delete the assignment group?');">
+                                Delete Category
+                            </button>
+                        </form>
+                        
                         <span class="toggle-icon" style="margin-left: 15px;">+</span> 
                     </div>
                 </div> 
@@ -240,9 +168,10 @@
                                         <form id="deleteGroupForm" action="/assignment/{{ assignment.id }}/delete/" method="POST" style="display:inline">
                                             {% csrf_token %}
                                             <button type="submit" 
-                                            class = "btn-action btn-delete action-trigger-delete"
-                                            onclick="return confirm('Are you sure you would like to delete the assignment?');">
-                                            Delete</button>
+                                                    class="btn-action btn-delete action-trigger-delete"
+                                                    onclick="return confirm('Are you sure you would like to delete the assignment?');">
+                                                Delete
+                                            </button>
                                         </form>
                                     </div>
                                 </li> 
@@ -259,49 +188,6 @@
             </div> 
         {% endfor %} 
     </div> 
-
-    <div id="groupModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Group Settings</h3>
-                <span class="close-modal" id="closeGroupModalBtn">&times;</span>
-            </div>
-            <form id="editGroupForm" action="" method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="groupEdit_title">Title:</label>
-                    <input type="text" id="groupEdit_title" name="title" required>
-                </div>
-                <div class="form-group">
-                    <label for="groupEdit_description">Description:</label>
-                    <textarea id="groupEdit_description" name="description"></textarea>
-                </div>
-                <div class="form-group form-group-inline">
-                    <label for="groupEdit_openGradeBook">Open Grade Book:</label>
-                    <input type="checkbox" id="groupEdit_openGradeBook" name="openGradeBook" value="true">
-                </div>
-
-                <div class="form-group">
-                    <label>Teacher Emails (Press Enter, Space, or Comma to add):</label>
-                    <div class="chip-container" id="teachers_chip_wrapper">
-                        <input type="text" class="chip-input-field" id="groupEdit_teachers_input" placeholder="Type email...">
-                    </div>
-                    <input type="hidden" id="groupEdit_teachers" name="teachers">
-                </div>
-
-                <div class="form-group">
-                    <label>Student Emails (Press Enter, Space, or Comma to add):</label>
-                    <div class="chip-container" id="students_chip_wrapper">
-                        <input type="text" class="chip-input-field" id="groupEdit_students_input" placeholder="Type email...">
-                    </div>
-                    <input type="hidden" id="groupEdit_students" name="students">
-                </div>
-
-                <button type="submit" class="btn-action btn-submit">Update Group</button>
-
-            </form>
-        </div>
-    </div>
 
     <div id="assignmentModal" class="modal">
         <div class="modal-content">
@@ -340,5 +226,28 @@
             </form> 
         </div>
     </div>
+
+    <div id="assignmentGroupModal" class="group-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="groupModalTitleDisplay">Create Assignment Group</h3>
+                <span class="close-modal" id="closeAssignmentGroupModalBtn">&times;</span>
+            </div>
+            
+            <form id="createAssignGroupForm" action="/group/{{ group.id }}/assignment-group/create/" method="POST"> 
+                {% csrf_token %} 
+                <div class="form-group">
+                    <label for="id_title">Title:</label>
+                    <input type="text" name="title" id="id_title" required>
+                </div>
+                <div class="form-group">
+                    <label for="id_subtitle">Subtitle:</label>
+                    <input type="text" name="subtitle" id="id_subtitle">
+                </div>
+                <button type="submit" id="groupSubmitBtnText" class="btn-action btn-submit">Create Assignment Group</button>
+            </form> 
+        </div>
+    </div>
+
 </body> 
 </html>
