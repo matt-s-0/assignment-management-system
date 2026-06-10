@@ -168,13 +168,9 @@
                                 </p>
 
                                 {% if submission.submittedText %}
-                                    <label style="font-weight:bold;">
-                                        Student Text Entry Input:
-                                    </label>
+                                    <label style="font-weight:bold;">Student Text Entry Input:</label>
 
-                                    <div class="content-box">
-                                        {{ submission.submittedText }}
-                                    </div>
+                                    <div class="content-box">{{ submission.submittedText }}</div>
                                 {% endif %}
 
                                 {% if submission.submittedFileContent %}

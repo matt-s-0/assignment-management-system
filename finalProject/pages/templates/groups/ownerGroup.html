@@ -87,9 +87,7 @@
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            {% if group.description %} 
-                <p style="color: #7f8c8d; margin: 0; display: inline;">{{ group.description }}</p> 
-            {% endif %} 
+            <p style="color: #7f8c8d; margin: 0; display: inline;">{{ group.description|default:'' }}</p> 
 
             <button class="btn-action btn-create-agn-group group-trigger-create" 
                     data-main-group-id="{{ group.id }}" 
