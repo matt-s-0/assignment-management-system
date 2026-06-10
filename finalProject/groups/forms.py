@@ -71,7 +71,7 @@ class assignmentForm(forms.ModelForm):
     class Meta:
         model = assignment
         # auto set: assignment group
-        fields = ['title', 'description', 'isHidden', 'assignmentType']
+        fields = ['title', 'description', 'gradeMax', 'isHidden', 'assignmentType']
 
 class studentSubmissionForm(forms.ModelForm):
     class Meta:
