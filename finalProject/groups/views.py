@@ -7,19 +7,24 @@ from .decorators import *
 import base64
 from collections import defaultdict
 
+# pk is an argument for most view methods, only the @validateUserEdit and @validateUserAccess use it (not the method itself)
+
 #################### Groups ####################
 
+
+# View the create group page
 @require_GET
 @login_required
-def viewCreateGroup(request):
+def viewCreateGroup(request) -> HttpResponse:
     return render(request, 'groups/createGroup.html')
 
+# View the edit group page
 @require_GET
-@login_required
 @validateUserEdit(group)
-def viewEditGroup(request, pk):
+def viewEditGroup(request, pk) -> HttpResponse:
     return render(request, 'groups/editGroup.html', {'group': request.groupObject})
 
+# Handles the group form when creating a group
 @require_POST
 @login_required
 @cleanKeys
@@ -37,6 +42,7 @@ def createGroup(request):
     
     return render(request, 'groups/createGroup.html', {'form': form})
 
+# Handles the group form when editting a group
 @require_POST
 @validateUserEdit(group)
 @cleanKeys
@@ -49,13 +55,15 @@ def editGroup(request, pk):
         
     return render(request, 'groups/editGroup.html', {'form': form, 'group': request.groupObject})
 
+# Handles group deletion
 @require_POST
 @validateUserEdit(group)
-def deleteGroup(request, pk):
+def deleteGroup(request, pk) -> HttpResponse:
     request.groupObject.delete()
     
     return redirect('home')
 
+# Handles viewing groups
 @require_GET
 @validateUserAccess(group)
 def viewGroup(request, pk):
@@ -72,6 +80,7 @@ def viewGroup(request, pk):
 
 #################### Assignment Groups ####################
 
+# Handles assignment group form when creating an assignment group
 @require_POST
 @validateUserEdit(group)
 @cleanKeys
@@ -87,6 +96,7 @@ def createAssignmentGroup(request, pk):
         
     return redirect('home')
 
+# Handles assignment group form when editting an assignment group
 @require_POST
 @validateUserEdit(assignmentGroup)
 @cleanKeys
@@ -98,6 +108,7 @@ def editAssignmentGroup(request, pk):
 
     return redirect('home')
 
+# Handles assignment group deletion
 @require_POST
 @validateUserEdit(assignmentGroup)
 def deleteAssignmentGroup(request, pk):
@@ -107,6 +118,7 @@ def deleteAssignmentGroup(request, pk):
 
 #################### Assignments ####################
 
+# Handles assignment form  when creating an assignment
 @require_POST
 @validateUserEdit(assignmentGroup)
 @cleanKeys
@@ -122,6 +134,7 @@ def createAssignment(request, pk):
         
     return redirect('home')
 
+# Handles assignment form when editting an assignment
 @require_POST
 @validateUserEdit(assignment)
 @cleanKeys
@@ -133,6 +146,7 @@ def editAssignment(request, pk):
 
     return redirect('home')
 
+# Handles assignment deletion
 @require_POST
 @validateUserEdit(assignment)
 def deleteAssignment(request, pk):
@@ -140,6 +154,7 @@ def deleteAssignment(request, pk):
     
     return redirect('home')
 
+# Handles viewing assignments
 @require_GET
 @validateUserAccess(assignment)
 def viewAssignment(request, pk):
@@ -217,6 +232,7 @@ def viewAssignment(request, pk):
 
 #################### Submissions ####################
 
+# Handles creating submissions
 @require_POST
 @validateUserAccess(assignment)
 @cleanKeys
@@ -260,7 +276,7 @@ def createSubmission(request, pk):
         
     return redirect('home')
 
-
+# Handles grading submissions
 @require_POST
 @validateUserEdit(submission)
 @cleanKeys

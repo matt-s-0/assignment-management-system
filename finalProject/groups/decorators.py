@@ -4,6 +4,13 @@ from django.http import HttpResponseForbidden, HttpResponse
 
 # login_required is built into validateUserAccess & validateUserEdit
 
+# validateUserAccess & validateUserEdit do similar things
+# -> validateUserAccess checks if the user is a student, teacher, or owner, otherwise renders a http forbidden
+# -> validateUserAcess checks if the user is a teacher or owner
+# They both also add baseObject and groupObject to the request, the baseObject is the object that is being checked (assignment group, assignment, submission)
+# groupObject is the object of the group that the base object belongs to
+# They both also userRelation to the request, which is either None (not in group), 'student', 'teacher', or 'owner'
+
 def validateUserAccess(model):
     def decorator(viewFunc):
         @wraps(viewFunc)
@@ -80,7 +87,9 @@ def validateUserEdit(model):
             return viewFunc(request, *args, **kwargs)
         return _wrapped_view
     return decorator
-    
+
+
+# cleanKeys removes keys that are "" / None, which Django does not do by default.
 def cleanKeys(viewFunc):
     def _wrapped_view(request, *args, **kwargs):
         if request.method == 'POST':
